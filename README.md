@@ -1,2 +1,64 @@
 # minecraft-skin-preprocessing
-A minecraft skin preprocessing python script. It can convert legacy 64x32 skins to modern 64x64 format, swap layer2 and layer1.
+
+A Minecraft skin preprocessing Python script.
+
+## Features
+
+- Convert legacy 64x32 skins to modern 64x64 format.
+- Swap layer2 to layer1 for skins.
+- Process skins from Base64-encoded strings.
+- Batch processing of skins in folders.
+- Customizable output folder for converted skins.
+- Option to overwrite existing files.
+
+## Installation
+
+Ensure you have Python installed on your system. Clone this repository and navigate to the project directory.
+
+## Usage
+
+### Convert format from a single skin
+```bash
+python preprocess.py -c old_skin.png
+```
+
+### Convert all skins in a folder
+```bash
+python preprocess.py -c -i skins_folder
+```
+
+### Convert with a custom output folder
+```bash
+python preprocess.py -c -i old_skins -o new_skins
+```
+
+### Convert and overwrite existing files
+```bash
+python preprocess.py -c -i skins_folder --overwrite
+```
+
+### Convert skin from a Base64 string
+```bash
+python preprocess.py -c -b base64_skin_string
+```
+
+### Swap layer2 to layer1 for a single skin
+```bash
+python preprocess.py -s old_skin.png
+```
+
+
+## Arguments
+
+- `input`: Input file or folder path (optional).
+- `-c, --convert`: Convert 64x32 skins to 64x64 format.
+- `-i, --input-folder`: Specify the input folder containing skins.
+- `-o, --output-folder`: Specify the output folder for converted skins.
+- `-s, --swap-layer2-to-layer1`: Swap layer2 to layer1 for skins.
+- `-b, --base64`: Process Base64-encoded skin images.
+- `--overwrite`: Overwrite existing files.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
