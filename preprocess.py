@@ -171,7 +171,12 @@ def batch_convert_folder(convert_func, input_folder, output_folder=None, overwri
         
         # Add suffix to filename
         base_name = os.path.splitext(filename)[0]
-        output_filename = f"{base_name}_64x64.png"
+        if convert_func is convert_skin_64x32_to_64x64:
+            output_filename = f"{base_name}_64x64.png"
+        elif convert_func is swap_skin_layer2_to_layer1:
+            output_filename = f"{base_name}_swap.png"
+        else:
+            output_filename = f"{base_name}_out.png"
         output_path = os.path.join(output_folder, output_filename)
         
         # Check if output file already exists
