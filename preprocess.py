@@ -210,8 +210,8 @@ def _swap_skin_layer2_to_layer1(img):
     head1_layer1 = img.crop((8, 0, 24, 8))
     new_skin.paste(head1_layer1, (40, 0, 56, 8))
 
-    head2_layer1 = img.crop((0, 8, 16, 16))
-    new_skin.paste(head2_layer1, (32, 8, 48, 16))
+    head2_layer1 = img.crop((0, 8, 32, 16))
+    new_skin.paste(head2_layer1, (32, 8, 64, 16))
 
     # Copy body layer2 to layer1
     body1_layer2 = img.crop((20, 32, 36, 36))
