@@ -72,40 +72,42 @@ def _convert_skin_64x32_to_64x64(img):
     # Create new 64x64 image
     new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-    # 64x32 skins only have head body right arm and right leg in layer1 and the head part in layer2
-    # we need to copy the right arm and right leg to the left arm and left leg region to create the whole layer1
-    # the rest of the layer2 part keep transparent
-
     exist_region_layer1 = ["head", "body", "right_arm", "right_leg"]
     exist_region_layer2 = ["head"]
 
     # Copy exist region in layer1
     for region in exist_region_layer1:
         for part in DEFAULT_SKIN_REGIONS["layer1"][region]:
-            part_name = part["name"]
-            part_coords = part["coords"]
-            part_img = img.crop(part_coords)
-            new_skin.paste(part_img, part_coords)
+            part_img = img.crop(part["coords"])
+            new_skin.paste(part_img, part["coords"])
     
     # Copy exist region in layer2
     for region in exist_region_layer2:
         for part in DEFAULT_SKIN_REGIONS["layer2"][region]:
-            part_name = part["name"]
-            part_coords = part["coords"]
-            part_img = img.crop(part_coords)
-            new_skin.paste(part_img, part_coords)
+            part_img = img.crop(part["coords"])
+            new_skin.paste(part_img, part["coords"])
     
     # Copy left arm and left leg region in layer1
-    for region in ["left_arm", "left_leg"]:
-        source_region = region.replace("left", "right")
-        for part in DEFAULT_SKIN_REGIONS["layer1"][source_region]:
-            part_name = part["name"]
-            part_coords = part["coords"]
-            part_img = img.crop(part_coords)
-            for target_part in DEFAULT_SKIN_REGIONS["layer1"][region]:
-                if target_part["name"] == part_name.replace("right", "left"):
-                    target_coords = target_part["coords"]
-                    new_skin.paste(part_img, target_coords)
+    mirror_regions = {
+        "left_arm": "right_arm",
+        "left_leg": "right_leg"
+    }
+
+    for target_region, source_region in mirror_regions.items():
+        source_parts = DEFAULT_SKIN_REGIONS["layer1"][source_region]
+        target_parts = DEFAULT_SKIN_REGIONS["layer1"][target_region]
+
+        coord_mapping = {
+            source_part["name"].replace("right", "left"): target_part["coords"]
+            for source_part, target_part in zip(source_parts, target_parts)
+        }
+
+        for source_part in source_parts:
+            target_part_name = source_part["name"].replace("right", "left")
+            if target_part_name in coord_mapping:
+                part_img = img.crop(source_part["coords"])
+                target_coords = coord_mapping[target_part_name]
+                new_skin.paste(part_img, target_coords)
 
     return new_skin
 
@@ -139,7 +141,6 @@ def convert_skin_64x32_to_64x64(input_path, output_path=None):
             if width != 64 or height != 32:
                 print(f"✗ {os.path.basename(input_path)}: Invalid dimensions {width}x{height}, expected 64x32")
                 return False
-            
             # Perform conversion
             new_skin = _convert_skin_64x32_to_64x64(img)
             
@@ -163,26 +164,26 @@ def _swap_skin_layer2_to_layer1(img):
 
     new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
+    # create mapping for layer swap
+    layer_mapping = {
+        'layer1': 'layer2',
+        'layer2': 'layer1'
+    }
+
     # get layer rigions from DEFAULT_SKIN_REGIONS
     for layer, regions in DEFAULT_SKIN_REGIONS.items():
+        target_layer = layer_mapping[layer]
         for part, parts in regions.items():
             for part_info in parts:
                 name = part_info['name']
                 coords = part_info['coords']
                 cropped_part = img.crop(tuple(coords))
-                
-                if layer == 'layer1':
-                    # find corresponding layer2 part
-                    layer2_part_info = next((p for p in DEFAULT_SKIN_REGIONS['layer2'][part] if p['name'] == name.replace('layer1', 'layer2')), None)
-                    if layer2_part_info:
-                        new_coords = layer2_part_info['coords']
-                        new_skin.paste(cropped_part, tuple(new_coords))
-                else:
-                    # find corresponding layer1 part
-                    layer1_part_info = next((p for p in DEFAULT_SKIN_REGIONS['layer1'][part] if p['name'] == name.replace('layer2', 'layer1')), None)
-                    if layer1_part_info:
-                        new_coords = layer1_part_info['coords']
-                        new_skin.paste(cropped_part, tuple(new_coords))
+
+                # Find corresponding part in target layer
+                target_part_info = next((p for p in DEFAULT_SKIN_REGIONS[target_layer][part] if p['name'] == name.replace(layer, target_layer)), None)
+                if target_part_info:
+                    new_coords = target_part_info['coords']
+                    new_skin.paste(cropped_part, tuple(new_coords))
 
     return new_skin
 
@@ -269,9 +270,8 @@ def _remove_layer(img, layer_index):
         return None
 
     # get layer rigions from DEFAULT_SKIN_REGIONS
-    for part, parts in DEFAULT_SKIN_REGIONS[keep_layer].items():
+    for parts in DEFAULT_SKIN_REGIONS[keep_layer].values():
         for part_info in parts:
-            name = part_info['name']
             coords = part_info['coords']
             cropped_part = img.crop(tuple(coords))
             new_skin.paste(cropped_part, tuple(coords))
