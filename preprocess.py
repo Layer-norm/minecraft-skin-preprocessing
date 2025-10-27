@@ -1,7 +1,14 @@
 """
-Minecraft Skin Converter
+Minecraft Skin Preprocessing Tool
+
+Author: Faxuan Cai
+
+License: MIT License
+
+Description:
 Converts legacy 64x32 skins to modern 64x64 format
 Swap layer2 and layer1
+Remove specific layer
 """
 
 import os
