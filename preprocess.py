@@ -274,6 +274,66 @@ def twice_swap_skin_layers(input_file, output_file=None):
         print(f"Error converting {input_file}: {str(e)}")
         return False
 
+def _remove_layer(img, layer_index):
+    """Remove a layer from a 64x64 skin image"""
+    new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+
+    if layer_index == 1:
+        keep_layer = 'layer2'
+    elif layer_index == 2:
+        keep_layer = 'layer1'
+    else:
+        print(f"✗ Invalid layer index: {layer_index}")
+        return None
+
+    # get layer rigions from DEFAULT_SKIN_REGIONS
+    for part, parts in DEFAULT_SKIN_REGIONS[keep_layer].items():
+        for part_info in parts:
+            name = part_info['name']
+            coords = part_info['coords']
+            cropped_part = img.crop(tuple(coords))
+            new_skin.paste(cropped_part, tuple(coords))
+
+    return new_skin
+
+def remove_layer(input_file, output_file=None, layer_index=2):
+    """
+    Remove a layer from a 64x64 skin image
+    
+    Args:
+        input_file (str): Path to the input file
+        output_file (str): Path to the output file
+        layer_index (int): Index of the layer to remove (1 or 2)
+
+    Returns:
+        bool: True if conversion was successful, False otherwise
+    
+    """
+    try:
+        img = Image.open(input_file)
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+
+        # Check image size
+        width, height = img.size
+        if width != 64 or height != 64:
+            print(f"✗ {os.path.basename(input_file)}: Invalid dimensions {width}x{height}, expected 64x64")
+            return False
+        
+        if layer_index not in [1, 2]:
+            print(f"✗ Invalid layer index: {layer_index}")
+            return False
+
+        new_skin = _remove_layer(img, layer_index)
+        if output_file is None:
+            output_file = os.path.splitext(input_file)[0] + f'_rm_layer{layer_index}.png'
+        new_skin.save(output_file)
+
+        print(f"✓ {os.path.basename(input_file)}: Saved remove layer skin to {output_file}")
+        return True
+    except Exception as e:
+        print(f"Error converting {input_file}: {str(e)}")
+        return False
 
 
 def load_skin_from_base64(base64_str):
@@ -282,7 +342,7 @@ def load_skin_from_base64(base64_str):
     img = Image.open(BytesIO(img_data))
     return img
 
-def batch_convert_folder(convert_func, input_folder, output_folder=None, overwrite=False):
+def batch_convert_folder(convert_func, input_folder, layer_index=None, output_folder=None, overwrite=False):
     """
     Convert all 64x32 skins in a folder to 64x64 format
     
@@ -337,6 +397,8 @@ def batch_convert_folder(convert_func, input_folder, output_folder=None, overwri
             output_filename = f"{base_name}_64x64.png"
         elif convert_func is swap_skin_layer2_to_layer1:
             output_filename = f"{base_name}_swap.png"
+        elif convert_func is remove_layer:
+            output_filename = f"{base_name}_rm_layer{layer_index}.png"
         else:
             output_filename = f"{base_name}_out.png"
         output_path = os.path.join(output_folder, output_filename)
@@ -388,6 +450,12 @@ Examples:
   # Swap layer2 and layer1 twice (to remove invalid areas)
   python preprocess.py -ss old_skin.png
 
+  # Remove layer1
+  python preprocess.py -rm 1 old_skin.png
+
+  # Remove layer2
+  python preprocess.py -rm 2 old_skin.png
+
   # Convert skin from base64 string
   python preprocess.py -c -b base64_skin_string
         """
@@ -400,6 +468,7 @@ Examples:
     parser.add_argument('-s','--swap-layer2-to-layer1', action='store_true', help='Swap layer2 to layer1')
     parser.add_argument('-ss','--twice-swap-layer2-to-layer1', action='store_true', help='Swap layer2 and layer1 twice (to remove invalid areas)')
     parser.add_argument('-b', '--base64', help='Base64 encoded skin image')
+    parser.add_argument('-rm', '--remove-layer', type=int, choices=[1, 2], help='Remove specified layer (1 or 2)')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     
     args = parser.parse_args()
@@ -411,6 +480,8 @@ Examples:
         convert_func = swap_skin_layer2_to_layer1
     elif args.double_swap_layer2_to_layer1:
         convert_func = twice_swap_skin_layers
+    elif args.remove_layer:
+        convert_func = lambda x, y: remove_layer(x, y, args.remove_layer)
     else:
         parser.print_help()
         return

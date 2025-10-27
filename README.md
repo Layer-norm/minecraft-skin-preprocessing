@@ -5,8 +5,9 @@ A Minecraft skin preprocessing Python script.
 ## Features
 
 - Convert legacy 64x32 skins to modern 64x64 format.
-- Swap layer2 to layer1 for skins.
+- Swap layer2 and layer1 for skins.
 - Swap layer2 and layer1 twice to remove invalid areas.
+- Remove specified layer (1 or 2) for skins.
 - Process skins from Base64-encoded strings.
 - Batch processing of skins in folders.
 - Customizable output folder for converted skins.
@@ -48,6 +49,16 @@ python preprocess.py -s old_skin.png
 python preprocess.py -ss old_skin.png
 ```
 
+### Remove layer1 from a skin
+```bash
+python preprocess.py -rm 1 old_skin.png
+```
+
+### Remove layer2 from a skin
+```bash
+python preprocess.py -rm 2 old_skin.png
+```
+
 ### Convert skin from a Base64 string
 ```bash
 python preprocess.py -c -b base64_skin_string
@@ -61,6 +72,7 @@ python preprocess.py -c -b base64_skin_string
 - `-o, --output-folder`: Specify the output folder for converted skins.
 - `-s, --swap-layer2-to-layer1`: Swap layer2 to layer1 for skins.
 - `-ss`: Swap layer2 and layer1 twice to remove invalid areas.
+- `-rm, --remove-layer`: Remove specified layer (1 or 2) for skins.
 - `-b, --base64`: Process Base64-encoded skin images.
 - `--overwrite`: Overwrite existing files.
 
