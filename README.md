@@ -16,6 +16,11 @@ A Minecraft skin preprocessing Python script.
 ## Installation
 
 Ensure you have Python installed on your system. Clone this repository and navigate to the project directory.
+Install the required packages using pip:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 
