@@ -71,59 +71,41 @@ def _convert_skin_64x32_to_64x64(img):
     """Convert a 64x32 skin image to 64x64 format"""
     # Create new 64x64 image
     new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-            
-    # For 64x32 skins, we need to create the additional layer parts
-    # The additional layer is typically a copy/mirror of the existing parts
-            
-    # Copy head layer1
-    head1_layer1 = img.crop((8, 0, 24, 8))
-    new_skin.paste(head1_layer1, (8, 0, 24, 8))
 
-    head2_layer1 = img.crop((0, 8, 32, 16))
-    new_skin.paste(head2_layer1, (0, 8, 32, 16))
+    # 64x32 skins only have head body right arm and right leg in layer1 and the head part in layer2
+    # we need to copy the right arm and right leg to the left arm and left leg region to create the whole layer1
+    # the rest of the layer2 part keep transparent
 
-    # Copy head layer2
-    head1_layer2 = img.crop((40, 0, 56, 8))
-    new_skin.paste(head1_layer2, (40, 0, 56, 8))
+    exist_region_layer1 = ["head", "body", "right_arm", "right_leg"]
+    exist_region_layer2 = ["head"]
 
-    head2_layer2 = img.crop((32, 8, 64, 16))
-    new_skin.paste(head2_layer2, (32, 8, 64, 16))
-            
-    # Copy body layer1
-    body1_layer1 = img.crop((20, 16, 36, 20))
-    new_skin.paste(body1_layer1, (20, 16, 36, 20))
-
-    body2_layer1 = img.crop((16, 20, 40, 32))
-    new_skin.paste(body2_layer1, (16, 20, 40, 32))
-            
-    # Copy right arm layer1
-    right_arm1_layer1 = img.crop((44, 16, 52, 20))
-    new_skin.paste(right_arm1_layer1, (44, 16, 52, 20))
-
-    right_arm2_layer1 = img.crop((40, 20, 56, 32))
-    new_skin.paste(right_arm2_layer1, (40, 20, 56, 32))
-            
-    # Copy left arm layer1
-    left_arm1_layer1 = img.crop((44, 16, 52, 20))
-    new_skin.paste(left_arm1_layer1, (36, 48, 44, 52))
-
-    left_arm2_layer1 = img.crop((40, 20, 56, 32))
-    new_skin.paste(left_arm2_layer1, (32, 52, 48, 64))
-
-
-    # Copy right leg layer1
-    right_leg1_layer1 = img.crop((4, 16, 12, 20))
-    new_skin.paste(right_leg1_layer1, (4, 16, 12, 20))
-
-    right_leg2_layer1 = img.crop((0, 20, 16, 32))
-    new_skin.paste(right_leg2_layer1, (0, 20, 16, 32))
-
-    # Copy left leg layer1
-    left_leg1_layer1 = img.crop((4, 16, 12, 20))
-    new_skin.paste(left_leg1_layer1, (20, 48, 28, 52))
-
-    left_leg2_layer1 = img.crop((0, 20, 16, 32))
-    new_skin.paste(left_leg2_layer1, (16, 52, 32, 64))
+    # Copy exist region in layer1
+    for region in exist_region_layer1:
+        for part in DEFAULT_SKIN_REGIONS["layer1"][region]:
+            part_name = part["name"]
+            part_coords = part["coords"]
+            part_img = img.crop(part_coords)
+            new_skin.paste(part_img, part_coords)
+    
+    # Copy exist region in layer2
+    for region in exist_region_layer2:
+        for part in DEFAULT_SKIN_REGIONS["layer2"][region]:
+            part_name = part["name"]
+            part_coords = part["coords"]
+            part_img = img.crop(part_coords)
+            new_skin.paste(part_img, part_coords)
+    
+    # Copy left arm and left leg region in layer1
+    for region in ["left_arm", "left_leg"]:
+        source_region = region.replace("left", "right")
+        for part in DEFAULT_SKIN_REGIONS["layer1"][source_region]:
+            part_name = part["name"]
+            part_coords = part["coords"]
+            part_img = img.crop(part_coords)
+            for target_part in DEFAULT_SKIN_REGIONS["layer1"][region]:
+                if target_part["name"] == part_name.replace("right", "left"):
+                    target_coords = target_part["coords"]
+                    new_skin.paste(part_img, target_coords)
 
     return new_skin
 
