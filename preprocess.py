@@ -478,7 +478,7 @@ Examples:
         convert_func = convert_skin_64x32_to_64x64
     elif args.swap_layer2_to_layer1:
         convert_func = swap_skin_layer2_to_layer1
-    elif args.double_swap_layer2_to_layer1:
+    elif args.twice_swap_layer2_to_layer1:
         convert_func = twice_swap_skin_layers
     elif args.remove_layer:
         convert_func = lambda x, y: remove_layer(x, y, args.remove_layer)
