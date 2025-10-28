@@ -10,6 +10,16 @@ requires-python = ">=3.10"
 dependencies = [
     "pillow>=10.0.0",
 ]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 
 [project.scripts]
 mcskinprep = "mcskinprep.cli:main"
@@ -17,3 +27,7 @@ mcskinprep = "mcskinprep.cli:main"
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+Repository = "https://github.com/Layer-norm/minecraft-skin-preprocessing.git"
+Issues = "https://github.com/Layer-norm/minecraft-skin-preprocessing/issues"
