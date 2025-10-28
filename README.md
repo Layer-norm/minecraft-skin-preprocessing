@@ -13,63 +13,25 @@ A Minecraft skin preprocessing Python script.
 - Customizable output folder for converted skins.
 - Option to overwrite existing files.
 
+## Update
+
+- 2025-10-28: able to build wheel via source code.
+
 ## Installation
 
-Ensure you have Python installed on your system. Clone this repository and navigate to the project directory.
-Install the required packages using pip:
+Install the package using pip:
 
 ```bash
-pip install -r requirements.txt
+pip install mcskinprep
 ```
 
 ## Usage
 
-### Convert format of a single skin (64x32 to 64x64)
-```bash
-python preprocess.py -c old_skin.png
-```
+### Command Line Interface
 
-### Convert all skins in a folder
-```bash
-python preprocess.py -c -i skins_folder
-```
+The package provides a command line interface for easy skin preprocessing.
 
-### Convert with a custom output folder
-```bash
-python preprocess.py -c -i old_skins -o new_skins
-```
-
-### Convert and overwrite existing files
-```bash
-python preprocess.py -c -i skins_folder --overwrite
-```
-
-### Swap layer2 to layer1 for a single skin
-```bash
-python preprocess.py -s old_skin.png
-```
-
-### Swap layer2 and layer1 twice (to remove invalid areas)
-```bash
-python preprocess.py -ss old_skin.png
-```
-
-### Remove layer1 from a skin
-```bash
-python preprocess.py -rm 1 old_skin.png
-```
-
-### Remove layer2 from a skin
-```bash
-python preprocess.py -rm 2 old_skin.png
-```
-
-### Convert skin from a Base64 string
-```bash
-python preprocess.py -c -b base64_skin_string
-```
-
-## Arguments
+#### Arguments
 
 - `input`: Input file or folder path (optional).
 - `-c, --convert`: Convert 64x32 skins to 64x64 format.
@@ -80,6 +42,107 @@ python preprocess.py -c -b base64_skin_string
 - `-rm, --remove-layer`: Remove specified layer (1 or 2) for skins.
 - `-b, --base64`: Process Base64-encoded skin images.
 - `--overwrite`: Overwrite existing files.
+- `-h, --help`: Show help message.
+- `-v, --version`: Show version information.
+
+#### Examples
+Convert format of a single skin (64x32 to 64x64)
+```bash
+mcskinprep -c old_skin.png
+```
+
+Convert all skins in a folder
+```bash
+mcskinprep -c -i skins_folder
+```
+
+Convert with a custom output folder
+```bash
+mcskinprep -c -i old_skins -o new_skins
+```
+
+Convert and overwrite existing files
+```bash
+mcskinprep -c -i skins_folder --overwrite
+```
+
+Swap layer2 and layer1 for a single skin
+```bash
+mcskinprep -s old_skin.png
+```
+
+Swap layer2 and layer1 twice (to remove invalid areas)
+```bash
+mcskinprep -ss old_skin.png
+```
+
+Remove layer2 from a skin
+```bash
+mcskinprep -rm 2 old_skin.png
+```
+
+Convert skin from a Base64 string
+```bash
+mcskinprep -c -b base64_skin_string
+```
+
+### Python API
+
+The package also provides a Python API for programmatic skin preprocessing.
+
+#### Examples
+usage of core tools
+```python
+from mcskinprep import MCSkinTools
+from PIL import Image
+
+# Create tools instance
+tools = MCSkinTools()
+
+# Load an image
+img = Image.open("skin.png")
+
+# Convert 64x32 to 64x64
+converted_img = tools.convert_skin_64x32_to_64x64(img)
+
+# Swap layers
+swapped_img = tools.swap_skin_layer2_to_layer1(img)
+
+# Remove layer
+layer_removed_img = tools.remove_layer(img, layer_index=1)
+
+# Save results
+converted_img.save("converted_skin.png")
+
+```
+usage of file processor 
+
+```python
+from mcskinprep import MCSkinFileProcessor
+
+# Create processor instance
+processor = MCSkinFileProcessor()
+
+# Convert a single 64x32 skin to 64x64
+processor.convert_skin_64x32_to_64x64("old_skin.png", "new_skin.png")
+
+# Swap layers in a skin
+processor.swap_skin_layer2_to_layer1("skin.png", "swapped_skin.png")
+
+# Swap layers twice to remove invalid areas
+processor.twice_swap_skin_layers("skin.png", "clean_skin.png")
+
+# Remove a specific layer
+processor.remove_layer("skin.png", "no_layer1_skin.png", layer_index=1)
+
+# Batch process skins in a folder
+processor.batch_convert_folder(
+    convert_func=processor.convert_skin_64x32_to_64x64,
+    input_folder="input_skins/",
+    output_folder="output_skins/",
+    overwrite=False
+)
+```
 
 ## License
 
