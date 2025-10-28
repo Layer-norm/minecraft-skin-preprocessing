@@ -422,31 +422,31 @@ def main():
         epilog="""
 Examples:
   # Convert a single skin
-  python preprocess.py -c old_skin.png
+  python MinecraftSkinTools.py -c old_skin.png
   
   # Convert all skins in a folder
-  python preprocess.py -c -i skins_folder
+  python MinecraftSkinTools.py -c -i skins_folder
   
   # Convert with custom output folder
-  python preprocess.py -c -i old_skins -o new_skins
+  python MinecraftSkinTools.py -c -i old_skins -o new_skins
 
   # Convert and overwrite existing files
-  python preprocess.py -c -i skins_folder --overwrite
+  python MinecraftSkinTools.py -c -i skins_folder --overwrite
 
   # Swap layer2 and layer1
-  python preprocess.py -s old_skin.png
+  python MinecraftSkinTools.py -s old_skin.png
 
   # Swap layer2 and layer1 twice (to remove invalid areas)
-  python preprocess.py -ss old_skin.png
+  python MinecraftSkinTools.py -ss old_skin.png
 
   # Remove layer1
-  python preprocess.py -rm 1 old_skin.png
+  python MinecraftSkinTools.py -rm 1 old_skin.png
 
   # Remove layer2
-  python preprocess.py -rm 2 old_skin.png
+  python MinecraftSkinTools.py -rm 2 old_skin.png
 
   # Convert skin from base64 string
-  python preprocess.py -c -b base64_skin_string
+  python MinecraftSkinTools.py -c -b base64_skin_string
         """
     )
     
