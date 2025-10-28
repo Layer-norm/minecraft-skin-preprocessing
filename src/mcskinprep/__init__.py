@@ -1,6 +1,6 @@
-from .tools import MCSkinTools, MinecraftSkinTools
+from .tools import MCSkinTools, MCSkinFileProcessor
 
 __all__ = [
     'MCSkinTools',
-    'MinecraftSkinTools'
+    'MCSkinFileProcessor',
 ]

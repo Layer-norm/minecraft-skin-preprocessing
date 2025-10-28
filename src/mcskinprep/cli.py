@@ -1,6 +1,7 @@
 
 import argparse
 import sys
+import os
 from .tools import MCSkinTools, MCSkinFileProcessor
 
 def main():
