@@ -4,6 +4,8 @@ import sys
 import os
 from .tools import MCSkinTools, MCSkinFileProcessor
 
+__version__ = "0.1.0"
+
 def main():
     """Main function with command line interface"""
     
@@ -50,8 +52,14 @@ Examples:
     parser.add_argument('-b', '--base64', help='Base64 encoded skin image')
     parser.add_argument('-rm', '--remove-layer', type=int, choices=[1, 2], help='Remove specified layer (1 or 2)')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     
     args = parser.parse_args()
+
+    if not any([args.convert, args.swap_layer2_to_layer1, args.twice_swap_layer2_to_layer1, args.remove_layer]):
+        if not args.version:
+            parser.print_help()
+            return
 
     processor = MCSkinFileProcessor()
     
@@ -65,7 +73,7 @@ Examples:
     elif args.remove_layer:
         convert_func = lambda x, y: processor.remove_layer(x, y, layer_index=args.remove_layer)
     else:
-        parser.print_help()
+        # parser.print_help()
         return
 
     # Determine input source
