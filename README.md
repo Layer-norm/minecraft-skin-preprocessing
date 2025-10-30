@@ -15,6 +15,7 @@ A Minecraft skin preprocessing Python script.
 
 ## Update
 
+- 2025-10-29: Initial release.
 - 2025-10-28: able to build wheel via source code.
 
 ## Installation

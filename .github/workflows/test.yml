@@ -1,10 +1,9 @@
-name: "Publish"
+name: "Test"
 
 on:
   push:
-    tags:
-      # Publish on any tag starting with a `v`, e.g., v0.1.0
-      - v0.1.1
+    branches:
+      - develop
 
 jobs:
   run:
@@ -28,5 +27,3 @@ jobs:
         run: uv run --isolated --no-project --with dist/*.whl tests/run_test.py
       - name: Unit test (source distribution)
         run: uv run --isolated --no-project --with dist/*.tar.gz tests/run_test.py
-      - name: Publish
-        run: uv publish
