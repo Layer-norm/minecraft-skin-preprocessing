@@ -64,20 +64,17 @@ Examples:
     processor = MCSkinFileProcessor()
     
     # Determine function
-    if args.convert:
-        convert_func = processor.convert_skin_64x32_to_64x64
-    elif args.swap_layer2_to_layer1:
-        convert_func = processor.swap_skin_layer2_to_layer1
-    elif args.twice_swap_layer2_to_layer1:
-        convert_func = processor.twice_swap_skin_layers
-    elif args.remove_layer:
-        def remove_layer_wrapper(x, y):
-            return processor.remove_layer(x, y, layer_index=args.remove_layer)
-
-        convert_func = remove_layer_wrapper
-    else:
-        # parser.print_help()
-        return
+    def convert_func(input_path, output_path):
+        if args.convert:
+            return processor.convert_skin_64x32_to_64x64(input_path, output_path)
+        elif args.swap_layer2_to_layer1:
+            return processor.swap_skin_layer2_to_layer1(input_path, output_path)
+        elif args.twice_swap_layer2_to_layer1:
+            return processor.twice_swap_skin_layers(input_path, output_path)
+        elif args.remove_layer:
+            return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
+        else:
+            return None
 
     # Determine input source
     if args.base64:
