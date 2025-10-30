@@ -18,6 +18,11 @@ A Minecraft skin preprocessing Python script.
 - 2025-10-29: Initial release.
 - 2025-10-28: able to build wheel via source code.
 
+## Working in Progress
+
+- [ ] two skin merge by layer.
+- [ ] support skin convert between slim and classic.
+
 ## Installation
 
 Install the package using pip:
