@@ -71,7 +71,10 @@ Examples:
     elif args.twice_swap_layer2_to_layer1:
         convert_func = processor.twice_swap_skin_layers
     elif args.remove_layer:
-        convert_func = lambda x, y: processor.remove_layer(x, y, layer_index=args.remove_layer)
+        def remove_layer_wrapper(x, y):
+            return processor.remove_layer(x, y, layer_index=args.remove_layer)
+
+        convert_func = remove_layer_wrapper
     else:
         # parser.print_help()
         return
