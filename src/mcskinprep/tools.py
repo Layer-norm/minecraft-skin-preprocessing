@@ -73,17 +73,107 @@ DEFAULT_MC_SKIN_REGIONS = {
     }
 }
 
+class MCSkinType:
+    """
+    Class for skin type (slim or regular)
+
+    """
+    
+    def __init__(self, skin_type=None, regular_regions=DEFAULT_MC_SKIN_REGIONS):
+        if skin_type is not None:
+            self.skin_type = skin_type
+        else:
+            self.skin_type = 'regular'
+        
+        self.regular_regions = regular_regions
+        self._slim_regions = {}
+        self.adjust_regions = ['right_arm', 'left_arm']
+
+    
+    @property
+    def slim_regions(self):
+        """
+        Get slim skin regions
+
+        Returns:
+            dict: Slim skin regions
+        """
+        for layer_key, layer_value in self.regular_regions.items():
+            self._slim_regions[layer_key] = {}
+            for region_key, region_value in layer_value.items():
+                if region_key in self.adjust_regions:
+                    adjusted_parts = []
+                    for part in region_value:
+                        coords = part["coords"].copy()
+                        coords[2] -= 2
+
+                        adjusted_parts.append({
+                            "name": part["name"],
+                            "coords": coords
+                        })
+                    self._slim_regions[layer_key][region_key] = adjusted_parts
+                else:
+                    self._slim_regions[layer_key][region_key] = region_value
+
+        return self._slim_regions
+    
+    @property
+    def skin_regions(self):
+        """
+        Get skin regions based on skin type
+
+        Returns:
+            dict: Skin regions
+        """
+        if self.skin_type == 'regular':
+            return self.regular_regions
+        elif self.skin_type == 'slim':
+            return self.slim_regions
+        else:
+            raise ValueError("Invalid skin type. Must be 'regular' or 'slim'.")
+
+    def auto_detect_skin_type(self, skin_img):
+        """
+        Detect skin type (slim or regular) based on skin image
+
+        Args:
+            skin_img (Image): Input skin image
+
+        Returns:
+            str: Detected skin type ('slim' or 'regular')
+        """
+        if skin_img.mode != 'RGBA':
+            skin_img = skin_img.convert('RGBA')
+
+        for arm in self.adjust_regions:
+            for layer in ['layer1', 'layer2']:
+                arm_region = self.regular_regions[layer][arm]
+            
+                for arm_part in arm_region:
+                    coords = arm_part['coords']
+                    arm_img = skin_img.crop(coords)
+                    arm_alpha_channel = np.array(arm_img.split()[-1])
+                    if np.any(arm_alpha_channel[:, -2:] > 0):
+                        self.skin_type = 'regular'
+                        return self.skin_type
+        
+
+        self.skin_type = 'slim'
+        return self.skin_type
+
+
 class MCSkinTools:
     """
     A class for preprocessing Minecraft skins
     """
 
-    def __init__(self, skin_regions=None):
+    def __init__(self, skin_type=None):
         """Initialize the MCSkinTools class"""
-        if skin_regions is None:
-            self.skin_regions = DEFAULT_MC_SKIN_REGIONS
-        else:
-            self.skin_regions = skin_regions
+
+        self.skin_type = skin_type
+        
+        self.skin_regions = MCSkinType(skin_type=self.skin_type).skin_regions
+
  
     def convert_skin_64x32_to_64x64(self,img):
         """Convert a 64x32 skin image to 64x64 format"""
@@ -195,8 +285,8 @@ class MCSkinFileProcessor:
     """
     A class for processing Minecraft skin files
     """
-    def __init__(self, skin_regions=None):
-        self.skin_tools = MCSkinTools(skin_regions)
+    def __init__(self, skin_type=None):
+        self.skin_tools = MCSkinTools(skin_type)
  
     def convert_skin_64x32_to_64x64(self, input_path, output_path=None):
         """
@@ -435,72 +525,4 @@ class MCSkinFileProcessor:
         print(f"Skipped: {skipped_files}")
         print(f"Errors: {error_files}")
 
-class MCSkinType:
-    """
-    Class for processing slim skins and regular skins
-
-    """
-    
-    def __init__(self, skin_type=None, skin_regions=DEFAULT_MC_SKIN_REGIONS):
-        if skin_type is not None:
-            self.skin_type = skin_type
-        else:
-            self.skin_type = 'regular'
-        
-        self.skin_regions = skin_regions
-        self.adjust_regions = ['right_arm', 'left_arm']
-    
-
-    def auto_detect_skin_type(self, skin_img):
-        """
-        Detect skin type (slim or regular) based on skin image
-
-        """
-        if skin_img.mode != 'RGBA':
-            skin_img = skin_img.convert('RGBA')
-
-        arm_alpha_last2 = 0
-        for arm in self.adjust_regions:
-            arm_region = self.skin_regions['layer1'][arm]
-            
-            for arm_part in arm_region:
-                coords = arm_part['coords']
-                arm_img = skin_img.crop(coords)
-                arm_array = np.array(arm_img)
-                arm_array_alpha = arm_array[:, :, 3]
-                arm_alpha_last2 += np.sum(arm_array_alpha[:, -2:] > 0)
-        
-        if arm_alpha_last2 == 0:
-            self.skin_type = 'slim'
-        else:
-            self.skin_type = 'regular'
-
-        print(f"Auto-detected skin type: {self.skin_type}")
-        return self.skin_type
-    
-
-    def generate_slim_skin_regions(default_regions, adjust_regions):
-        """
-        Generate slim skin regions
-
-        """
-        slim_regions = {}
-        for layer_key, layer_value in default_regions.items():
-            slim_regions[layer_key] = {}
-            for region_key, region_value in layer_value.items():
-                if region_key in adjust_regions:
-                    adjusted_parts = []
-                    for part in region_value:
-                        coords = part["coords"].copy()
-                        coords[2] -= 2
-
-                        adjusted_parts.append({
-                            "name": part["name"],
-                            "coords": coords
-                        })
-                    slim_regions[layer_key][region_key] = adjusted_parts
-                else:
-                    slim_regions[layer_key][region_key] = region_value
-    
-        return slim_regions
 
