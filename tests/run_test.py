@@ -8,7 +8,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 
-from mcskinprep import MCSkinTools, MCSkinFileProcessor
+from mcskinprep import MCSkinTools, MCSkinFileProcessor, MCSkinType
 
 
 class TestMCSkinTools(unittest.TestCase):
@@ -16,6 +16,7 @@ class TestMCSkinTools(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures before each test method."""
         self.skin_tools = MCSkinTools()
+        self.skin_type_detector = MCSkinType()
         
         # 创建一个简单的64x32测试图像
         self.test_img_64x32 = Image.new('RGBA', (64, 32), (255, 0, 0, 255))  # 红色方块
@@ -49,6 +50,71 @@ class TestMCSkinTools(unittest.TestCase):
         for x in range(32, 48):
             for y in range(52, 64):
                 self.test_img_64x64.putpixel((x, y), (255, 255, 0, 255))  # 黄色方块
+
+    def test_skin_regions_for_regular_type(self):
+        """Test skin regions for regular skin type."""
+        skin_type_handler = MCSkinType('regular')
+        regions = skin_type_handler.skin_regions
+        
+        # 检查regular类型的手臂区域宽度是否正确(4像素宽)
+        right_arm_coords = regions['layer1']['right_arm'][0]['coords']
+        arm_width = right_arm_coords[2] - right_arm_coords[0]
+        self.assertEqual(arm_width, 8)  # 右臂部分应该是8像素宽
+
+        # 检查特定区域坐标是否符合预期
+        head_layer1_coords = regions['layer1']['head'][0]['coords']
+        self.assertEqual(head_layer1_coords, [8, 0, 24, 8])
+        
+        head_layer2_coords = regions['layer2']['head'][0]['coords']
+        self.assertEqual(head_layer2_coords, [40, 0, 56, 8])
+
+    def test_skin_regions_for_slim_type(self):
+        """Test skin regions for slim type."""
+        skin_type_handler = MCSkinType('slim')
+        regions = skin_type_handler.skin_regions
+        
+        # 检查slim类型的手臂区域宽度是否正确(3像素宽)
+        right_arm_coords = regions['layer1']['right_arm'][0]['coords']
+        arm_width = right_arm_coords[2] - right_arm_coords[0]
+        self.assertEqual(arm_width, 6)  # slim手臂应该比regular窄2像素
+        
+        # 检查其他区域不受影响
+        head_layer1_coords = regions['layer1']['head'][0]['coords']
+        self.assertEqual(head_layer1_coords, [8, 0, 24, 8])  # 头部坐标应该不变
+
+    def test_invalid_skin_type_raises_error(self):
+        """Test that invalid skin type raises ValueError."""
+        skin_type_handler = MCSkinType('invalid_type')
+        
+        with self.assertRaises(ValueError) as context:
+            _ = skin_type_handler.skin_regions
+        
+        self.assertIn("Invalid skin type", str(context.exception))
+
+    def test_auto_detect_skin_type_regular(self):
+        """Test automatic detection of regular skin type."""
+        skin_type_detector = MCSkinType()
+        
+        # 创建一个regular类型的皮肤(64x64)
+        regular_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        
+        # 在右臂边缘添加可见像素以标识为regular类型
+        for x in range(50, 52):
+            for y in range(16, 20):
+                regular_skin.putpixel((x, y), (0, 255, 0, 255))
+        
+        detected_type = skin_type_detector.auto_detect_skin_type(regular_skin)
+        self.assertEqual(detected_type, 'regular')
+
+    def test_auto_detect_skin_type_slim(self):
+        """Test automatic detection of slim skin type."""
+        skin_type_detector = MCSkinType()
+        
+        # 创建一个slim类型的皮肤(64x64)
+        slim_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        
+        detected_type = skin_type_detector.auto_detect_skin_type(slim_skin)
+        self.assertEqual(detected_type, 'slim')
     
     def test_convert_skin_64x32_to_64x64(self):
         """Test conversion from 64x32 to 64x64."""
