@@ -156,6 +156,12 @@ class MCSkinTools:
 
         return new_skin
     
+    def twice_swap_skin_layer(self,img):
+        """swap layer1 and layer2 twice in a 64x64 skin image"""
+        new_skin = self.swap_skin_layer2_to_layer1(img)
+        new_skin = self.swap_skin_layer2_to_layer1(new_skin)
+        return new_skin
+    
     def remove_layer(self,img, layer_index):
         """Remove a layer from a 64x64 skin image"""
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
@@ -297,8 +303,7 @@ class MCSkinFileProcessor:
                 print(f"✗ {os.path.basename(input_file)}: Invalid dimensions {width}x{height}, expected 64x64")
                 return False
 
-            new_skin = self.skin_tools.swap_skin_layer2_to_layer1(img)
-            new_skin = self.skin_tools.swap_skin_layer2_to_layer1(new_skin)
+            new_skin = self.skin_tools.twice_swap_skin_layer(img)
             if output_file is None:
                 output_file = os.path.splitext(input_file)[0] + '_swap_swap.png'
             new_skin.save(output_file)
