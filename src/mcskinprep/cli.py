@@ -3,8 +3,9 @@ import argparse
 import sys
 import os
 from .tools import MCSkinTools, MCSkinFileProcessor
+import importlib.metadata
 
-__version__ = "0.1.0"
+__version__ = importlib.metadata.version('mcskinprep')
 
 def main():
     """Main function with command line interface"""
