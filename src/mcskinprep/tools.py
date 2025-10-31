@@ -12,6 +12,7 @@ Remove specific layer
 """
 
 import os
+import numpy as np
 from PIL import Image
 import base64
 from io import BytesIO
@@ -434,5 +435,72 @@ class MCSkinFileProcessor:
         print(f"Skipped: {skipped_files}")
         print(f"Errors: {error_files}")
 
+class MCSkinType:
+    """
+    Class for processing slim skins and regular skins
 
+    """
+    
+    def __init__(self, skin_type=None, skin_regions=DEFAULT_MC_SKIN_REGIONS):
+        if skin_type is not None:
+            self.skin_type = skin_type
+        else:
+            self.skin_type = 'regular'
+        
+        self.skin_regions = skin_regions
+        self.adjust_regions = ['right_arm', 'left_arm']
+    
+
+    def auto_detect_skin_type(self, skin_img):
+        """
+        Detect skin type (slim or regular) based on skin image
+
+        """
+        if skin_img.mode != 'RGBA':
+            skin_img = skin_img.convert('RGBA')
+
+        arm_alpha_last2 = 0
+        for arm in self.adjust_regions:
+            arm_region = self.skin_regions['layer1'][arm]
+            
+            for arm_part in arm_region:
+                coords = arm_part['coords']
+                arm_img = skin_img.crop(coords)
+                arm_array = np.array(arm_img)
+                arm_array_alpha = arm_array[:, :, 3]
+                arm_alpha_last2 += np.sum(arm_array_alpha[:, -2:] > 0)
+        
+        if arm_alpha_last2 == 0:
+            self.skin_type = 'slim'
+        else:
+            self.skin_type = 'regular'
+
+        print(f"Auto-detected skin type: {self.skin_type}")
+        return self.skin_type
+    
+
+    def generate_slim_skin_regions(default_regions, adjust_regions):
+        """
+        Generate slim skin regions
+
+        """
+        slim_regions = {}
+        for layer_key, layer_value in default_regions.items():
+            slim_regions[layer_key] = {}
+            for region_key, region_value in layer_value.items():
+                if region_key in adjust_regions:
+                    adjusted_parts = []
+                    for part in region_value:
+                        coords = part["coords"].copy()
+                        coords[2] -= 2
+
+                        adjusted_parts.append({
+                            "name": part["name"],
+                            "coords": coords
+                        })
+                    slim_regions[layer_key][region_key] = adjusted_parts
+                else:
+                    slim_regions[layer_key][region_key] = region_value
+    
+        return slim_regions
 
