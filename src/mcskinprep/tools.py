@@ -80,16 +80,39 @@ class MCSkinType:
     """
     
     def __init__(self, skin_type=None, regular_regions=DEFAULT_MC_SKIN_REGIONS):
-        if skin_type is not None:
-            self.skin_type = skin_type
-        else:
-            self.skin_type = 'regular'
+        self._skin_type = skin_type
         
         self.regular_regions = regular_regions
         self._slim_regions = {}
         self.adjust_regions = ['right_arm', 'left_arm']
 
+    @property
+    def skin_type(self):
+        """
+        Get skin type
+
+        Returns:
+            str: Skin type ('slim' or 'regular')
+        """
+        if self._skin_type is None:
+            self._skin_type = 'regular'
+        return self._skin_type
     
+    @skin_type.setter
+    def skin_type(self, img):
+        """
+        Set skin type
+        Args:
+            img (Image): Input skin image
+        """
+        if self.auto_detect_skin_type(img) == 'regular':
+            self._skin_type = 'regular'
+        elif self.auto_detect_skin_type(img) == 'slim':
+            self._skin_type = 'slim'
+        else:
+            raise ValueError("Detect invalid skin type. Must be 'slim', 'regular', 'steve', or 'alex'.")
+
+
     @property
     def slim_regions(self):
         """
@@ -125,12 +148,12 @@ class MCSkinType:
         Returns:
             dict: Skin regions
         """
-        if self.skin_type == 'regular':
+        if self.skin_type in ['regular', 'steve']:
             return self.regular_regions
-        elif self.skin_type == 'slim':
+        elif self.skin_type in ['slim', 'alex']:
             return self.slim_regions
         else:
-            raise ValueError("Invalid skin type. Must be 'regular' or 'slim'.")
+            raise ValueError("Invalid skin type. Must be 'regular', 'slim', 'steve', or 'alex'.")
 
     def auto_detect_skin_type(self, skin_img):
         """
@@ -169,10 +192,12 @@ class MCSkinTools:
 
     def __init__(self, skin_type=None):
         """Initialize the MCSkinTools class"""
-
         self.skin_type = skin_type
-        
-        self.skin_regions = MCSkinType(skin_type=self.skin_type).skin_regions
+        self.type_detector = MCSkinType(skin_type=skin_type)
+        self.skin_regions = self.type_detector.skin_regions
+
+        self.regular_regions = self.type_detector.regular_regions
+        self.slim_regions = self.type_detector.slim_regions
 
  
     def convert_skin_64x32_to_64x64(self,img):
@@ -274,6 +299,102 @@ class MCSkinTools:
 
         return new_skin
     
+    def steve_to_alex(self,img):
+        """Convert a steve skin image to alex skin type"""
+        self.skin_type = self.type_detector.detect_skin_type(img)
+        if self.skin_type not in ["steve", "regular", "alex", "slim"]:
+            raise ValueError(f"✗ Invalid skin type: {self.skin_type}")
+        elif self.skin_type in ["alex", "slim"]:
+            return img
+
+        new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        i = 2
+        delete_columns = {
+            "right_arm": [
+                [i, 4 + i],
+                [4 + i, 3 * 4 + (3 - i)]
+            ],
+            "left_arm": [
+                [3 - i, 4 + (3 - i)],
+                [4 + (3 - i), 3 * 4 + i]
+            ]
+        }
+
+        for layer in ["layer1", "layer2"]:
+            for arm_side in ["right_arm", "left_arm"]:
+                arm_parts = self.regular_regions[layer][arm_side]
+                col_indices = delete_columns[arm_side]
+
+                for idx, (part, delect_col) in enumerate(zip(arm_parts, col_indices)):
+                    part_img = img.crop(part["coords"])
+                    part_array = np.array(part_img)
+
+                    new_part_array = np.delete(part_array, delect_col, axis=1)
+                    new_part_img = Image.fromarray(new_part_array, mode='RGBA')
+
+                    target_coords = self.slim_regions[layer][arm_side][idx]["coords"]
+                    new_skin.paste(new_part_img, target_coords)
+
+        return new_skin
+    
+    def alex_to_steve(self,img):
+        """Convert a alex skin image to steve skin type"""
+        self.skin_type = self.type_detector.detect_skin_type(img)
+        if self.skin_type not in ["alex", "slim", "steve", "regular"]:
+            raise ValueError(f"✗ Invalid skin type: {self.skin_type}")
+        elif self.skin_type in ["steve", "regular"]:
+            return img
+        
+        new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+
+        i = 1
+
+        insert_columns = {
+            "right_arm": [
+                [i, 3 + i],           # right_arm part1: i 和 3+i
+                [4 + i, 11 + (2 - i)] # right_arm part2: 4+i 和 11+(2-i)
+            ],
+            "left_arm": [
+                [2 - i, 3 + (2 - i)], # left_arm part1: 2-i 和 3+(2-i)
+                [4 + (2 - i), 11 + i] # left_arm part2: 4+(2-i) 和 11+i
+            ]
+        }
+
+        for layer in ["layer1", "layer2"]:
+            for arm_side in ["right_arm", "left_arm"]:
+                arm_parts = self.slim_regions[layer][arm_side]
+                indices = insert_columns[arm_side]
+
+                for idx, (part, insert_col) in enumerate(zip(arm_parts, indices)):
+                    part_img = img.crop(part["coords"])
+                    part_array = np.array(part_img)
+
+                    # Insert columns in reverse order to avoid index shift
+                    for pos in sorted(insert_col, reverse=True):
+                        column_to_copy = part_array[:, pos, :]
+                        new_part_array = np.insert(part_array, pos, column_to_copy, axis=1)
+
+                    new_part_img = Image.fromarray(new_part_array, mode='RGBA')
+
+                    target_coords = self.regular_regions[layer][arm_side][idx]["coords"]
+                    new_skin.paste(new_part_img, target_coords)
+
+        return new_skin
+
+    def skin_type_convert(self,img):
+        """Convert a skin image to the specified skin type"""
+        if self.skin_type is None:
+            self.skin_type = self.detect_skin_type(img)
+
+        if self.skin_type in ["steve", "regular"]:
+            new_skin = self.steve_to_alex(img)
+        elif self.skin_type in ["alex", "slim"]:
+            new_skin = self.alex_to_steve(img)
+        else:
+            print(f"✗ Invalid skin type: {self.skin_type}")
+            return None
+        return new_skin
+
     @staticmethod
     def load_skin_from_base64(base64_str):
         """Load skin image from base64 string"""
@@ -444,13 +565,15 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def batch_convert_folder(self, convert_func, input_folder, layer_index=None, output_folder=None, overwrite=False):
+    def batch_convert_folder(self, convert_func, input_folder, output_folder=None, layer_index=None, overwrite=False):
         """
-        Convert all 64x32 skins in a folder to 64x64 format
+        Convert all skins in a folder with specified convert function
 
         Args:
             input_folder (str): Path to folder containing skins
+            convert_func (function): Function to apply to each skin
             output_folder (str): Output folder path (optional)
+            layer_index (int): Index of the layer to remove (1 or 2) for remove_layer function
             overwrite (bool): Whether to overwrite existing files
         """
 
