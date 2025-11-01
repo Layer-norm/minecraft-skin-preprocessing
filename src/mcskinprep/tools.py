@@ -201,6 +201,7 @@ class MCSkinTools:
 
         self.regular_regions = self.type_detector.regular_regions
         self.slim_regions = self.type_detector.slim_regions
+        self.adjust_regions = self.type_detector.adjust_regions
 
  
     def convert_skin_64x32_to_64x64(self,img):
@@ -304,7 +305,7 @@ class MCSkinTools:
 
         return new_skin
     
-    def steve_to_alex(self,img):
+    def steve_to_alex(self, img ,index=2):
         """Convert a steve skin image to alex skin type"""
         self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["steve", "regular", "alex", "slim"]:
@@ -313,7 +314,12 @@ class MCSkinTools:
             return img
 
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
-        i = 2
+
+        i = index
+
+        if i not in [0, 1, 2, 3]:
+            raise ValueError(f"✗ Invalid delete index: {i}")
+        
         delete_columns = {
             "right_arm": [
                 [i, 4 + i],
@@ -325,24 +331,29 @@ class MCSkinTools:
             ]
         }
 
-        for layer in ["layer1", "layer2"]:
-            for arm_side in ["right_arm", "left_arm"]:
-                arm_parts = self.regular_regions[layer][arm_side]
-                col_indices = delete_columns[arm_side]
+        for layer, regions in self.regular_regions.items():
+            for region, parts in regions.items():
+                if region not in self.adjust_regions:
+                    for part in parts:
+                        part_img = img.crop(part["coords"])
+                        new_skin.paste(part_img, part["coords"])
+                else:
+                    arm_parts = self.regular_regions[layer][region]
+                    col_indices = delete_columns[region]
 
-                for idx, (part, delect_col) in enumerate(zip(arm_parts, col_indices)):
-                    part_img = img.crop(part["coords"])
-                    part_array = np.array(part_img)
+                    for idx, (part, delect_col) in enumerate(zip(arm_parts, col_indices)):
+                        part_img = img.crop(part["coords"])
+                        part_array = np.array(part_img)
 
-                    new_part_array = np.delete(part_array, delect_col, axis=1)
-                    new_part_img = Image.fromarray(new_part_array, mode='RGBA')
+                        new_part_array = np.delete(part_array, delect_col, axis=1)
+                        new_part_img = Image.fromarray(new_part_array, mode='RGBA')
 
-                    target_coords = self.slim_regions[layer][arm_side][idx]["coords"]
-                    new_skin.paste(new_part_img, target_coords)
+                        target_coords = self.slim_regions[layer][region][idx]["coords"]
+                        new_skin.paste(new_part_img, target_coords)
 
         return new_skin
     
-    def alex_to_steve(self,img):
+    def alex_to_steve(self, img, index=1):
         """Convert a alex skin image to steve skin type"""
         self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["alex", "slim", "steve", "regular"]:
@@ -352,7 +363,10 @@ class MCSkinTools:
         
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-        i = 1
+        i = index
+
+        if i not in [0, 1, 2]:
+            raise ValueError(f"✗ Invalid append index: {i}")
 
         # Insert columns in reverse order to avoid index shift
         insert_columns = {
@@ -366,25 +380,30 @@ class MCSkinTools:
             ]
         }
 
-        for layer in ["layer1", "layer2"]:
-            for arm_side in ["right_arm", "left_arm"]:
-                arm_parts = self.slim_regions[layer][arm_side]
-                indices = insert_columns[arm_side]
+        for layer, regions in self.regular_regions.items():
+            for region, parts in regions.items():
+                if region not in self.adjust_regions:
+                    for part in parts:
+                        part_img = img.crop(part["coords"])
+                        new_skin.paste(part_img, part["coords"])
+                else:
+                    arm_parts = self.slim_regions[layer][region]
+                    indices = insert_columns[region]
 
-                for idx, (part, insert_col) in enumerate(zip(arm_parts, indices)):
-                    part_img = img.crop(part["coords"])
+                    for idx, (part, insert_col) in enumerate(zip(arm_parts, indices)):
+                        part_img = img.crop(part["coords"])
 
-                    new_part_array = np.array(part_img)
+                        new_part_array = np.array(part_img)
 
-                    for pos in insert_col:
-                        column_to_copy = new_part_array[:, pos, :]
-                        new_part_array = np.insert(new_part_array, pos, column_to_copy, axis=1)
+                        for pos in insert_col:
+                            column_to_copy = new_part_array[:, pos, :]
+                            new_part_array = np.insert(new_part_array, pos, column_to_copy, axis=1)
 
-                    new_part_img = Image.fromarray(new_part_array, mode='RGBA')
+                        new_part_img = Image.fromarray(new_part_array, mode='RGBA')
 
-                    target_coords = self.regular_regions[layer][arm_side][idx]["coords"]
+                        target_coords = self.regular_regions[layer][region][idx]["coords"]
 
-                    new_skin.paste(new_part_img, target_coords)
+                        new_skin.paste(new_part_img, target_coords)
 
         return new_skin
 
