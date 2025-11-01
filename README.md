@@ -21,7 +21,7 @@ A Minecraft skin preprocessing Python script.
 ## Working in Progress
 
 - [ ] two skin merge by layer.
-- [ ] support skin convert between slim and classic.
+- [x] support skin convert between regular and slim (steve and alex).
 
 ## Installation
 

@@ -354,14 +354,15 @@ class MCSkinTools:
 
         i = 1
 
+        # Insert columns in reverse order to avoid index shift
         insert_columns = {
             "right_arm": [
-                [i, 3 + i],           # right_arm part1: i 和 3+i
-                [4 + i, 11 + (2 - i)] # right_arm part2: 4+i 和 11+(2-i)
+                [3 + i, i],           # right_arm part1: i 和 3+i
+                [11 + (2 - i), 4 + i] # right_arm part2: 4+i 和 11+(2-i)
             ],
             "left_arm": [
-                [2 - i, 3 + (2 - i)], # left_arm part1: 2-i 和 3+(2-i)
-                [4 + (2 - i), 11 + i] # left_arm part2: 4+(2-i) 和 11+i
+                [3 + (2 - i), 2 - i], # left_arm part1: 2-i 和 3+(2-i)
+                [11 + i, 4 + (2 - i)] # left_arm part2: 4+(2-i) 和 11+i
             ]
         }
 
@@ -372,19 +373,17 @@ class MCSkinTools:
 
                 for idx, (part, insert_col) in enumerate(zip(arm_parts, indices)):
                     part_img = img.crop(part["coords"])
-                    part_array = np.array(part_img)
 
-                    # Insert columns in reverse order to avoid index shift
-                    for pos in sorted(insert_col, reverse=True):
-                        column_to_copy = part_array[:, pos, :]
-                        new_part_array = np.insert(part_array, pos, column_to_copy, axis=1)
+                    new_part_array = np.array(part_img)
+
+                    for pos in insert_col:
+                        column_to_copy = new_part_array[:, pos, :]
+                        new_part_array = np.insert(new_part_array, pos, column_to_copy, axis=1)
 
                     new_part_img = Image.fromarray(new_part_array, mode='RGBA')
-                    print(new_part_img.size)
 
                     target_coords = self.regular_regions[layer][arm_side][idx]["coords"]
-                    print(target_coords)
-                    
+
                     new_skin.paste(new_part_img, target_coords)
 
         return new_skin
