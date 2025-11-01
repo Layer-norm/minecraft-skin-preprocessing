@@ -1,6 +1,6 @@
 [project]
 name = "mcskinprep"
-version = "0.1.0"
+version = "0.1.1"
 description = "Minecraft Skin Preprocessing Tools"
 authors = [
     { name = "Faxuan Cai", email = "magicianaio@gmail.com" }
@@ -8,6 +8,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "numpy",
     "pillow>=10.0.0",
 ]
 classifiers = [

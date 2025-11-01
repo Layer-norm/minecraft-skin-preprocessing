@@ -5,6 +5,7 @@ A Minecraft skin preprocessing Python script.
 ## Features
 
 - Convert legacy 64x32 skins to modern 64x64 format.
+- Convert regular (steve) skin to slim (alex) and vice versa.
 - Swap layer2 and layer1 for skins.
 - Swap layer2 and layer1 twice to remove invalid areas.
 - Remove specified layer (1 or 2) for skins.
@@ -15,8 +16,15 @@ A Minecraft skin preprocessing Python script.
 
 ## Update
 
+- 2025-11-1: Add support for skin convert between regular and slim (steve and alex).
+- 2025-10-30: Add function for skin type detection (steve or alex).
 - 2025-10-29: Initial release.
-- 2025-10-28: able to build wheel via source code.
+
+## Working in Progress
+
+- [ ] skin type detection in cli.
+- [ ] two skins merge by layer.
+- [ ] Improve examples.
 
 ## Installation
 
@@ -38,9 +46,11 @@ The package provides a command line interface for easy skin preprocessing.
 - `-c, --convert`: Convert 64x32 skins to 64x64 format.
 - `-i, --input-folder`: Specify the input folder containing skins.
 - `-o, --output-folder`: Specify the output folder for converted skins.
+- `-t, --type`: Specify the source skin type (steve or alex) for conversion.
 - `-s, --swap-layer2-to-layer1`: Swap layer2 to layer1 for skins.
 - `-ss`: Swap layer2 and layer1 twice to remove invalid areas.
 - `-rm, --remove-layer`: Remove specified layer (1 or 2) for skins.
+- `-to, --target-type`: Convert skin between regular (steve) and slim (alex) types.
 - `-b, --base64`: Process Base64-encoded skin images.
 - `--overwrite`: Overwrite existing files.
 - `-h, --help`: Show help message.
@@ -82,6 +92,12 @@ Remove layer2 from a skin
 mcskinprep -rm 2 old_skin.png
 ```
 
+Convert skin type (steve to alex or vice versa)
+```bash
+mcskinprep -to alex old_skin.png
+mcskinprep -to steve old_skin.png
+```
+
 Convert skin from a Base64 string
 ```bash
 mcskinprep -c -b base64_skin_string
@@ -94,7 +110,7 @@ The package also provides a Python API for programmatic skin preprocessing.
 #### Examples
 usage of core tools
 ```python
-from mcskinprep import MCSkinTools
+from mcskinprep import MCSkinTools, MCSkinType
 from PIL import Image
 
 # Create tools instance
@@ -105,6 +121,16 @@ img = Image.open("skin.png")
 
 # Convert 64x32 to 64x64
 converted_img = tools.convert_skin_64x32_to_64x64(img)
+
+# Detect skin type
+skin_type_detector = MCSkinType()
+skin_type = skin_type_detector.auto_detect_skin_type(img)
+print(f"Detected skin type: {skin_type}")
+
+# convert skin type (steve to alex or vice versa)
+converted_img = tools.convert_skin_type(img, target_type="alex")
+# or
+converted_img = tools.steve_to_alex(img)
 
 # Swap layers
 swapped_img = tools.swap_skin_layer2_to_layer1(img)
