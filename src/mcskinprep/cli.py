@@ -85,7 +85,7 @@ Examples:
             return processor.twice_swap_skin_layers(input_path, output_path)
         elif args.remove_layer:
             return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
-        elif args.convert_type:
+        elif args.target_type:
             return processor.convert_skin_type(input_path, output_path, target_type=args.target_type)
         else:
             return None
