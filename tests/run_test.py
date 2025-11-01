@@ -99,7 +99,7 @@ class TestMCSkinTools(unittest.TestCase):
         regular_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
         
         # 在右臂边缘添加可见像素以标识为regular类型
-        for x in range(50, 52):
+        for x in range(44, 52):
             for y in range(16, 20):
                 regular_skin.putpixel((x, y), (0, 255, 0, 255))
         
@@ -167,6 +167,31 @@ class TestMCSkinTools(unittest.TestCase):
         # 加载并验证
         loaded_img = MCSkinTools.load_skin_from_base64(img_str)
         self.assertEqual(loaded_img.size, (64, 32))
+
+    def test_convert_skin_type(self):
+        """Test skin type conversion."""
+
+        skin_type_detector = MCSkinType()
+
+        # 创建一个regular类型的皮肤(64x64)
+        regular_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        
+        # 在右臂添加可见像素以标识为regular类型
+        for x in range(44, 52):
+            for y in range(16, 20):
+                regular_skin.putpixel((x, y), (0, 255, 0, 255))
+
+        # 测试regular转换为slim
+        result_slim = self.skin_tools.convert_skin_type(regular_skin, target_type='slim')
+        result_type = skin_type_detector.auto_detect_skin_type(result_slim)
+        self.assertEqual(result_slim.size, (64, 64))
+        self.assertEqual(result_type, 'slim')
+        
+        # 测试slim转换为regular
+        result_regular = self.skin_tools.convert_skin_type(result_slim, target_type='regular')
+        result_type = skin_type_detector.auto_detect_skin_type(result_regular)
+        self.assertEqual(result_regular.size, (64, 64))
+        self.assertEqual(result_type, 'regular')
 
 
 class TestMCSkinFileProcessor(unittest.TestCase):

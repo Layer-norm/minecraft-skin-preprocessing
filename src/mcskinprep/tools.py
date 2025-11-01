@@ -99,16 +99,14 @@ class MCSkinType:
         return self._skin_type
     
     @skin_type.setter
-    def skin_type(self, img):
+    def skin_type(self, value):
         """
         Set skin type
         Args:
-            img (Image): Input skin image
+            value (str): Skin type ('slim' , 'regular', 'steve', 'alex')
         """
-        if self.auto_detect_skin_type(img) == 'regular':
-            self._skin_type = 'regular'
-        elif self.auto_detect_skin_type(img) == 'slim':
-            self._skin_type = 'slim'
+        if value in ['regular', 'steve', 'slim', 'alex']:
+            self._skin_type = value
         else:
             raise ValueError("Detect invalid skin type. Must be 'slim', 'regular', 'steve', or 'alex'.")
 
@@ -148,9 +146,10 @@ class MCSkinType:
         Returns:
             dict: Skin regions
         """
-        if self.skin_type in ['regular', 'steve']:
+        skin_type = self.skin_type
+        if skin_type in ['regular', 'steve']:
             return self.regular_regions
-        elif self.skin_type in ['slim', 'alex']:
+        elif skin_type in ['slim', 'alex']:
             return self.slim_regions
         else:
             raise ValueError("Invalid skin type. Must be 'regular', 'slim', 'steve', or 'alex'.")
@@ -177,12 +176,12 @@ class MCSkinType:
                     arm_img = skin_img.crop(coords)
                     arm_alpha_channel = np.array(arm_img.split()[-1])
                     if np.any(arm_alpha_channel[:, -2:] > 0):
-                        self.skin_type = 'regular'
-                        return self.skin_type
+                        self._skin_type = 'regular'
+                        return self._skin_type
         
 
-        self.skin_type = 'slim'
-        return self.skin_type
+        self._skin_type = 'slim'
+        return self._skin_type
 
 
 class MCSkinTools:
@@ -194,7 +193,11 @@ class MCSkinTools:
         """Initialize the MCSkinTools class"""
         self.skin_type = skin_type
         self.type_detector = MCSkinType(skin_type=skin_type)
-        self.skin_regions = self.type_detector.skin_regions
+
+        try:
+            self.skin_regions = self.type_detector.skin_regions
+        except (ValueError, AttributeError):
+            self.skin_regions = self.type_detector.regular_regions
 
         self.regular_regions = self.type_detector.regular_regions
         self.slim_regions = self.type_detector.slim_regions
@@ -208,15 +211,17 @@ class MCSkinTools:
         exist_region_layer1 = ["head", "body", "right_arm", "right_leg"]
         exist_region_layer2 = ["head"]
 
+        skin_regions = self.skin_regions
+
         # Copy exist region in layer1
         for region in exist_region_layer1:
-            for part in self.skin_regions["layer1"][region]:
+            for part in skin_regions["layer1"][region]:
                 part_img = img.crop(part["coords"])
                 new_skin.paste(part_img, part["coords"])
 
         # Copy exist region in layer2
         for region in exist_region_layer2:
-            for part in self.skin_regions["layer2"][region]:
+            for part in skin_regions["layer2"][region]:
                 part_img = img.crop(part["coords"])
                 new_skin.paste(part_img, part["coords"])
 
@@ -227,8 +232,8 @@ class MCSkinTools:
         }
 
         for target_region, source_region in mirror_regions.items():
-            source_parts = self.skin_regions["layer1"][source_region]
-            target_parts = self.skin_regions["layer1"][target_region]
+            source_parts = skin_regions["layer1"][source_region]
+            target_parts = skin_regions["layer1"][target_region]
 
             coord_mapping = {
                 source_part["name"].replace("right", "left"): target_part["coords"]
@@ -301,7 +306,7 @@ class MCSkinTools:
     
     def steve_to_alex(self,img):
         """Convert a steve skin image to alex skin type"""
-        self.skin_type = self.type_detector.detect_skin_type(img)
+        self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["steve", "regular", "alex", "slim"]:
             raise ValueError(f"✗ Invalid skin type: {self.skin_type}")
         elif self.skin_type in ["alex", "slim"]:
@@ -339,7 +344,7 @@ class MCSkinTools:
     
     def alex_to_steve(self,img):
         """Convert a alex skin image to steve skin type"""
-        self.skin_type = self.type_detector.detect_skin_type(img)
+        self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["alex", "slim", "steve", "regular"]:
             raise ValueError(f"✗ Invalid skin type: {self.skin_type}")
         elif self.skin_type in ["steve", "regular"]:
@@ -375,22 +380,39 @@ class MCSkinTools:
                         new_part_array = np.insert(part_array, pos, column_to_copy, axis=1)
 
                     new_part_img = Image.fromarray(new_part_array, mode='RGBA')
+                    print(new_part_img.size)
 
                     target_coords = self.regular_regions[layer][arm_side][idx]["coords"]
+                    print(target_coords)
+                    
                     new_skin.paste(new_part_img, target_coords)
 
         return new_skin
 
-    def skin_type_convert(self,img):
+    def convert_skin_type(self, img, target_type=None):
         """Convert a skin image to the specified skin type"""
-        if self.skin_type is None:
-            self.skin_type = self.detect_skin_type(img)
-            print(f"Warning: Current skin type not specific, using detected type: {self.skin_type}")
 
-        if self.skin_type in ["steve", "regular"]:
-            new_skin = self.steve_to_alex(img)
-        elif self.skin_type in ["alex", "slim"]:
+        if target_type is None:
+            if self.skin_type is None:
+                print(f"Warning: Current skin type not specific, using detected type: {self.skin_type}")
+                self.skin_type = self.type_detector.auto_detect_skin_type(img)
+
+            if self.skin_type in ["steve", "regular"]:
+                target_type = "alex"
+            elif self.skin_type in ["alex", "slim"]:
+                target_type = "steve"
+            else:
+                print(f"✗ Invalid skin type: {self.skin_type}")
+                return None
+
+        elif target_type not in ["steve", "alex", "regular", "slim"]:
+            print(f"✗ Invalid target skin type: {target_type}")
+            return None
+
+        if target_type in ["steve", "regular"]:
             new_skin = self.alex_to_steve(img)
+        elif target_type in ["alex", "slim"]:
+            new_skin = self.steve_to_alex(img)
         else:
             print(f"✗ Invalid skin type: {self.skin_type}")
             return None
@@ -413,10 +435,10 @@ class MCSkinFileProcessor:
     def _load_skin(self, input_path):
         """Load and verify Minecraft skin image"""
         try:
-            with Image.open(input_path) as img:
-                if img.mode != 'RGBA':
-                    img = img.convert('RGBA')
-                return img
+            img = Image.open(input_path)
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+            return img
         except Exception as e:
             print(f"✗ Error loading {os.path.basename(input_path)}: {str(e)}")
             return None
@@ -443,6 +465,7 @@ class MCSkinFileProcessor:
         # Open the image
         img = self._load_skin(input_path)
         if img is None:
+            print(f"✗ {os.path.basename(input_path)}: Error loading skin")
             return False
         
         # check if the skin is already 64x64
@@ -464,7 +487,12 @@ class MCSkinFileProcessor:
                 output_path = f"{base_name}_64x64.png"
 
             # Save the converted skin
-            new_skin.save(output_path, 'PNG')
+            try:
+                new_skin.save(output_path, 'PNG')
+            except Exception as e:
+                print(f"✗ Error saving {os.path.basename(output_path)}: {str(e)}")
+                return False
+            
             print(f"✓ Converted {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
             return True
 
@@ -571,7 +599,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def convert_skin_type(self, input_file, output_file=None, skin_type=None):
+    def convert_skin_type(self, input_file, output_file=None, target_type=None):
         """
         Convert a skin image to specified type
         Args:
@@ -589,9 +617,9 @@ class MCSkinFileProcessor:
                 print(f"✗ {os.path.basename(input_file)}: Invalid dimensions expected 64x64")
                 return False
 
-            new_skin = self.skin_tools.convert_skin_type(img, skin_type)
+            new_skin = self.skin_tools.convert_skin_type(img, target_type)
             if output_file is None:
-                output_file = os.path.splitext(input_file)[0] + f'_{skin_type}.png'
+                output_file = os.path.splitext(input_file)[0] + f'_{target_type}.png'
             new_skin.save(output_file)
 
             print(f"✓ {os.path.basename(input_file)}: Saved convert skin type to {output_file}")
