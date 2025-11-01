@@ -408,6 +408,24 @@ class MCSkinFileProcessor:
     """
     def __init__(self, skin_type=None):
         self.skin_tools = MCSkinTools(skin_type)
+
+    def _load_skin(self, input_path):
+        """Load and verify Minecraft skin image"""
+        try:
+            with Image.open(input_path) as img:
+                if img.mode != 'RGBA':
+                    img = img.convert('RGBA')
+                return img
+        except Exception as e:
+            print(f"✗ Error loading {os.path.basename(input_path)}: {str(e)}")
+            return None
+        
+    def _verify_skin_dimensions(self, img, expected_size=(64, 64)):
+        """Verify if skin image has the expected dimensions"""
+        width, height = img.size
+        if width != expected_size[0] or height != expected_size[1]:
+            return False
+        return True
  
     def convert_skin_64x32_to_64x64(self, input_path, output_path=None):
         """
@@ -421,37 +439,33 @@ class MCSkinFileProcessor:
             bool: True if conversion was successful
         """
 
-        try:
-            # Open the image
-            with Image.open(input_path) as img:
-                # Convert to RGBA if needed
-                if img.mode != 'RGBA':
-                    img = img.convert('RGBA')
+        # Open the image
+        img = self._load_skin(input_path)
+        if img is None:
+            return False
+        
+        # check if the skin is already 64x64
+        if self._verify_skin_dimensions(img, (64, 64)):
+            print(f"✓ {os.path.basename(input_path)} is already 64x64")
+            return True
+        elif not self._verify_skin_dimensions(img, (64, 32)):
+            print(f"✗ {os.path.basename(input_path)}: Invalid dimensions expected 64x32")
+            return False
 
-                width, height = img.size
+        try:    
+            # Perform conversion
+            new_skin = self.skin_tools.convert_skin_64x32_to_64x64(img)
 
-                # Check if it's already 64x64
-                if width == 64 and height == 64:
-                    print(f"✓ {os.path.basename(input_path)} is already 64x64")
-                    return True
+            # Determine output path
+            if output_path is None:
+                # Create output filename
+                base_name = os.path.splitext(input_path)[0]
+                output_path = f"{base_name}_64x64.png"
 
-                # Verify it's 64x32
-                if width != 64 or height != 32:
-                    print(f"✗ {os.path.basename(input_path)}: Invalid dimensions {width}x{height}, expected 64x32")
-                    return False
-                # Perform conversion
-                new_skin = self.skin_tools.convert_skin_64x32_to_64x64(img)
-
-                # Determine output path
-                if output_path is None:
-                    # Create output filename
-                    base_name = os.path.splitext(input_path)[0]
-                    output_path = f"{base_name}_64x64.png"
-
-                # Save the converted skin
-                new_skin.save(output_path, 'PNG')
-                print(f"✓ Converted {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
-                return True
+            # Save the converted skin
+            new_skin.save(output_path, 'PNG')
+            print(f"✓ Converted {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
+            return True
 
         except Exception as e:
             print(f"✗ Error processing {os.path.basename(input_path)}: {str(e)}")
@@ -471,14 +485,11 @@ class MCSkinFileProcessor:
         """
 
         try:
-            img = Image.open(input_file)
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-
-            # Check image size
-            width, height = img.size
-            if width != 64 or height != 64:
-                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions {width}x{height}, expected 64x64")
+            img = self._load_skin(input_file)
+            if img is None:
+                return False
+            if not self._verify_skin_dimensions(img, (64, 64)):
+                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions expected 64x64")
                 return False
 
             new_skin = self.skin_tools.swap_skin_layer2_to_layer1(img)
@@ -505,14 +516,11 @@ class MCSkinFileProcessor:
 
         """
         try: 
-            img = Image.open(input_file)
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-
-            # Check image size
-            width, height = img.size
-            if width != 64 or height != 64:
-                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions {width}x{height}, expected 64x64")
+            img = self._load_skin(input_file)
+            if img is None:
+                return False
+            if not self._verify_skin_dimensions(img, (64, 64)):
+                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions expected 64x64")
                 return False
 
             new_skin = self.skin_tools.twice_swap_skin_layer(img)
@@ -540,14 +548,11 @@ class MCSkinFileProcessor:
 
         """
         try:
-            img = Image.open(input_file)
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-
-            # Check image size
-            width, height = img.size
-            if width != 64 or height != 64:
-                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions {width}x{height}, expected 64x64")
+            img = self._load_skin(input_file)
+            if img is None:
+                return False
+            if not self._verify_skin_dimensions(img, (64, 64)):
+                print(f"✗ {os.path.basename(input_file)}: Invalid dimensions expected 64x64")
                 return False
 
             if layer_index not in [1, 2]:
