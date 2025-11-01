@@ -110,7 +110,7 @@ The package also provides a Python API for programmatic skin preprocessing.
 #### Examples
 usage of core tools
 ```python
-from mcskinprep import MCSkinTools
+from mcskinprep import MCSkinTools, MCSkinType
 from PIL import Image
 
 # Create tools instance
@@ -121,6 +121,16 @@ img = Image.open("skin.png")
 
 # Convert 64x32 to 64x64
 converted_img = tools.convert_skin_64x32_to_64x64(img)
+
+# Detect skin type
+skin_type_detector = MCSkinType()
+skin_type = skin_type_detector.auto_detect_skin_type(img)
+print(f"Detected skin type: {skin_type}")
+
+# convert skin type (steve to alex or vice versa)
+converted_img = tools.convert_skin_type(img, target_type="alex")
+# or
+converted_img = tools.steve_to_alex(img)
 
 # Swap layers
 swapped_img = tools.swap_skin_layer2_to_layer1(img)
