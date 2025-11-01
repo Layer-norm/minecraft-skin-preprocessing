@@ -59,7 +59,7 @@ Examples:
     parser.add_argument('-b', '--base64', help='Base64 encoded skin image')
     parser.add_argument('-rm', '--remove-layer', type=int, choices=[1, 2], help='Remove specified layer (1 or 2)')
     parser.add_argument('-to', '--target-type', choices=['steve', 'alex', 'regular', 'slim'], help='Target skin type (steve or alex)')
-    parser.add_argument('-to_mode', choices=[0,1,2,3], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
+    parser.add_argument('-to_mode', choices=['0','1','2','3'], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
     parser.add_argument('-t', '--type', choices=['steve', 'alex', 'regular', 'slim'], help='Skin type (steve or alex)')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')

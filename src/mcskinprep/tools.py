@@ -315,19 +315,19 @@ class MCSkinTools:
 
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-        i = index
+        i = int(index)
 
         if i not in [0, 1, 2, 3]:
             raise ValueError(f"✗ Invalid delete index: {i}")
         
         delete_columns = {
             "right_arm": [
-                [i, 4 + i],
-                [4 + i, 3 * 4 + (3 - i)]
+                [i, 4 + i],                 # delete right arm column i and 4 + i
+                [4 + i, 3 * 4 + (3 - i)]    # delete right arm column 4 + i and 11 + (3 - i)
             ],
             "left_arm": [
-                [3 - i, 4 + (3 - i)],
-                [4 + (3 - i), 3 * 4 + i]
+                [3 - i, 4 + (3 - i)],       # delete left arm column 3 - i and 4 + (3 - i)
+                [4 + (3 - i), 3 * 4 + i]    # delete left arm column 4 + (3 - i) and 11 + i
             ]
         }
 
@@ -363,7 +363,7 @@ class MCSkinTools:
         
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-        i = index
+        i = int(index)
 
         if i not in [0, 1, 2]:
             raise ValueError(f"✗ Invalid append index: {i}")
@@ -371,12 +371,12 @@ class MCSkinTools:
         # Insert columns in reverse order to avoid index shift
         insert_columns = {
             "right_arm": [
-                [3 + i, i],           # right_arm part1: i 和 3+i
-                [11 + (2 - i), 4 + i] # right_arm part2: 4+i 和 11+(2-i)
+                [3 + i, i],           # right_arm part1: i and 3+i
+                [11 + (2 - i), 4 + i] # right_arm part2: 4+i and 11+(2-i)
             ],
             "left_arm": [
-                [3 + (2 - i), 2 - i], # left_arm part1: 2-i 和 3+(2-i)
-                [11 + i, 4 + (2 - i)] # left_arm part2: 4+(2-i) 和 11+i
+                [3 + (2 - i), 2 - i], # left_arm part1: 2-i and 3+(2-i)
+                [11 + i, 4 + (2 - i)] # left_arm part2: 4+(2-i) and 11+i
             ]
         }
 
