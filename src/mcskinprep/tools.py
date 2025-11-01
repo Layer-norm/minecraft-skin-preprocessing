@@ -407,7 +407,7 @@ class MCSkinTools:
 
         return new_skin
 
-    def convert_skin_type(self, img, target_type=None):
+    def convert_skin_type(self, img, target_type=None, mode=None):
         """Convert a skin image to the specified skin type"""
 
         if target_type is None:
@@ -428,9 +428,13 @@ class MCSkinTools:
             return None
 
         if target_type in ["steve", "regular"]:
-            new_skin = self.alex_to_steve(img)
+            if mode is None:
+                mode = 2
+            new_skin = self.alex_to_steve(img, index=mode)
         elif target_type in ["alex", "slim"]:
-            new_skin = self.steve_to_alex(img)
+            if mode is None:
+                mode = 1
+            new_skin = self.steve_to_alex(img, index=mode)
         else:
             print(f"✗ Invalid skin type: {self.skin_type}")
             return None
@@ -617,7 +621,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def convert_skin_type(self, input_file, output_file=None, target_type=None):
+    def convert_skin_type(self, input_file, output_file=None, target_type=None, mode=None):
         """
         Convert a skin image to specified type
         Args:
@@ -635,7 +639,7 @@ class MCSkinFileProcessor:
                 print(f"✗ {os.path.basename(input_file)}: Invalid dimensions expected 64x64")
                 return False
 
-            new_skin = self.skin_tools.convert_skin_type(img, target_type)
+            new_skin = self.skin_tools.convert_skin_type(img, target_type, mode)
             if output_file is None:
                 output_file = os.path.splitext(input_file)[0] + f'_{target_type}.png'
             new_skin.save(output_file)
