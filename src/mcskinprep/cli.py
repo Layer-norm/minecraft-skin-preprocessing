@@ -8,7 +8,7 @@ import importlib.metadata
 try:
     __version__ = importlib.metadata.version('mcskinprep')
 except importlib.metadata.PackageNotFoundError:
-    __version__ = '0.1.1'
+    __version__ = '0.2.0'
 
 def main():
     """Main function with command line interface"""
