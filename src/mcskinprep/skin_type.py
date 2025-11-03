@@ -1,5 +1,4 @@
 import numpy as np
-from PIL import Image
 
 from .constants import DEFAULT_MC_SKIN_REGIONS
 

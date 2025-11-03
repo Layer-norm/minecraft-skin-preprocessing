@@ -11,14 +11,12 @@ Swap layer2 and layer1
 Remove specific layer
 """
 
-import os
 import numpy as np
 from PIL import Image
 import base64
 from io import BytesIO
 
 from .skin_type import MCSkinType
-from .constants import DEFAULT_MC_SKIN_REGIONS
 
 class MCSkinTools:
     """
