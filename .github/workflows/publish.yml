@@ -2,11 +2,9 @@ name: "Publish"
 
 on:
   push:
-    # tags:
-    #   # Publish on any tag starting with a `v`, e.g., v0.1.0
-    #   - v0.2.*
-    branches:
-      - main
+    tags:
+      # Publish on any tag starting with a `v`, e.g., v0.1.0
+      - v0.2.*
 
 jobs:
   run:
