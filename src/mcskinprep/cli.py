@@ -2,7 +2,9 @@
 import argparse
 import sys
 import os
-from .tools import MCSkinTools, MCSkinFileProcessor
+
+from .file_processor import MCSkinFileProcessor
+
 import importlib.metadata
 
 try:
@@ -96,10 +98,9 @@ Examples:
 
     # Determine input source
     if args.base64:
-        img = MCSkinTools.load_skin_from_base64(args.base64)
-        input_path = "base64_skin.png"
-        with open(input_path, "wb") as f:
-            f.write(img.tobytes())
+        img, input_path = processor.load_skin_from_base64(args.base64)
+        if img is None or input_path is None:
+            return
     elif args.input_folder:
         input_path = args.input_folder
     elif args.input:

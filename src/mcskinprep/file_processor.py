@@ -30,6 +30,25 @@ class MCSkinFileProcessor:
             return False
         return True
  
+    def load_skin_from_base64(self, base64_string):
+        """
+        Load skin from base64 encoded string
+
+        Args:
+            base64_string (str): Base64 encoded skin image
+
+        Returns:
+            tuple: (Image object, temporary file path)
+        """
+        try:
+            img = MCSkinTools.load_skin_from_base64(base64_string)
+            temp_path = "base64_skin.png"
+            img.save(temp_path, 'PNG')
+            return img, temp_path
+        except Exception as e:
+            print(f"✗ Error loading skin from base64: {str(e)}")
+            return None, None
+
     def convert_skin_64x32_to_64x64(self, input_path, output_path=None):
         """
         Convert a 64x32 Minecraft skin to 64x64 format
