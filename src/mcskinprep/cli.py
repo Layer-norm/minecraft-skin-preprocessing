@@ -7,12 +7,14 @@ from .file_processor import MCSkinFileProcessor
 
 import importlib.metadata
 
+from typing import Optional
+
 try:
     __version__ = importlib.metadata.version('mcskinprep')
 except importlib.metadata.PackageNotFoundError:
     __version__ = '0.2.0'
 
-def main():
+def main() -> None:
     """Main function with command line interface"""
     
     parser = argparse.ArgumentParser(
@@ -79,7 +81,7 @@ Examples:
         processor = MCSkinFileProcessor()
     
     # Determine function
-    def convert_func(input_path, output_path):
+    def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
         if args.convert:
             return processor.convert_skin_64x32_to_64x64(input_path, output_path)
         elif args.swap_layer2_to_layer1:
@@ -89,10 +91,8 @@ Examples:
         elif args.remove_layer:
             return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
         elif args.target_type:
-            if args.to_mode is not None:
-                return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=args.to_mode)
-            else:
-                return processor.convert_skin_type(input_path, output_path, target_type=args.target_type)
+            mode = int(args.to_mode) if args.to_mode is not None else None
+            return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=mode)
         else:
             return None
 
@@ -100,6 +100,7 @@ Examples:
     if args.base64:
         img, input_path = processor.load_skin_from_base64(args.base64)
         if img is None or input_path is None:
+            print("Error: Failed to decode base64 string")
             return
     elif args.input_folder:
         input_path = args.input_folder

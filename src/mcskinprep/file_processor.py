@@ -4,15 +4,17 @@ from PIL import Image
 
 from .tools import MCSkinTools
 
+from typing import Optional, Tuple, Callable
+
 
 class MCSkinFileProcessor:
     """
     A class for processing Minecraft skin files
     """
-    def __init__(self, skin_type=None):
+    def __init__(self, skin_type: Optional[str] = None) -> None:
         self.skin_tools = MCSkinTools(skin_type)
 
-    def _load_skin(self, input_path):
+    def _load_skin(self, input_path: str):
         """Load and verify Minecraft skin image"""
         try:
             img = Image.open(input_path)
@@ -23,14 +25,14 @@ class MCSkinFileProcessor:
             print(f"✗ Error loading {os.path.basename(input_path)}: {str(e)}")
             return None
         
-    def _verify_skin_dimensions(self, img, expected_size=(64, 64)):
+    def _verify_skin_dimensions(self, img: Image, expected_size: Tuple[int, int]= (64, 64)) -> bool:
         """Verify if skin image has the expected dimensions"""
         width, height = img.size
         if width != expected_size[0] or height != expected_size[1]:
             return False
         return True
  
-    def load_skin_from_base64(self, base64_string):
+    def load_skin_from_base64(self, base64_string: str) -> Tuple[Optional[Image.Image], Optional[str]]:
         """
         Load skin from base64 encoded string
 
@@ -49,7 +51,7 @@ class MCSkinFileProcessor:
             print(f"✗ Error loading skin from base64: {str(e)}")
             return None, None
 
-    def convert_skin_64x32_to_64x64(self, input_path, output_path=None):
+    def convert_skin_64x32_to_64x64(self, input_path: str, output_path: Optional[str] = None) -> bool:
         """
         Convert a 64x32 Minecraft skin to 64x64 format
 
@@ -99,7 +101,7 @@ class MCSkinFileProcessor:
             print(f"✗ Error processing {os.path.basename(input_path)}: {str(e)}")
             return False
 
-    def swap_skin_layer2_to_layer1(self,input_file, output_file=None):
+    def swap_skin_layer2_to_layer1(self,input_file: str, output_file: Optional[str] = None) -> bool:
         """
         swap layer2 to layer1 in a 64x64 skin image
 
@@ -131,7 +133,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def twice_swap_skin_layers(self, input_file, output_file=None):
+    def twice_swap_skin_layers(self, input_file: str, output_file: Optional[str] = None) -> bool:
         """
         Swap layer2 and layer1 twice (to remove invalid areas) in a 64x64 skin image
 
@@ -162,7 +164,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def remove_layer(self, input_file, output_file=None, layer_index=None):
+    def remove_layer(self, input_file: str, output_file: Optional[str] = None, layer_index: Optional[int] = None) -> bool:
         """
         Remove a layer from a 64x64 skin image
 
@@ -198,7 +200,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def convert_skin_type(self, input_file, output_file=None, target_type=None, mode=None):
+    def convert_skin_type(self, input_file: str, output_file: Optional[str] = None, target_type: Optional[str] = None, mode: Optional[int] = None) -> bool:
         """
         Convert a skin image to specified type
         Args:
@@ -227,7 +229,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
-    def batch_convert_folder(self, convert_func, input_folder, output_folder=None, layer_index=None, overwrite=False):
+    def batch_convert_folder(self, convert_func: Callable[[str, Optional[str], Optional[str], Optional[int]], bool], input_folder: str, output_folder: Optional[str] = None, layer_index: Optional[int] = None, overwrite: bool = False) -> None:
         """
         Convert all skins in a folder with specified convert function
 

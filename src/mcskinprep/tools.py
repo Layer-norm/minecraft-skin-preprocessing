@@ -18,12 +18,14 @@ from io import BytesIO
 
 from .skin_type import MCSkinType
 
+from typing import Optional
+
 class MCSkinTools:
     """
     A class for preprocessing Minecraft skins
     """
 
-    def __init__(self, skin_type=None):
+    def __init__(self, skin_type: Optional[str] = None) -> None:
         """Initialize the MCSkinTools class"""
         self.skin_type = skin_type
         self.type_detector = MCSkinType(skin_type=skin_type)
@@ -38,7 +40,7 @@ class MCSkinTools:
         self.adjust_regions = self.type_detector.adjust_regions
 
  
-    def convert_skin_64x32_to_64x64(self,img):
+    def convert_skin_64x32_to_64x64(self, img: Image.Image) -> Image.Image:
         """Convert a 64x32 skin image to 64x64 format"""
         # Create new 64x64 image
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
@@ -84,7 +86,7 @@ class MCSkinTools:
 
         return new_skin
 
-    def swap_skin_layer2_to_layer1(self,img):
+    def swap_skin_layer2_to_layer1(self, img: Image.Image) -> Image.Image:
         """swap layer2 to layer1 in a 64x64 skin image"""
 
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
@@ -112,13 +114,13 @@ class MCSkinTools:
 
         return new_skin
     
-    def twice_swap_skin_layer(self,img):
+    def twice_swap_skin_layer(self, img: Image.Image) -> Image.Image:
         """swap layer1 and layer2 twice in a 64x64 skin image"""
         new_skin = self.swap_skin_layer2_to_layer1(img)
         new_skin = self.swap_skin_layer2_to_layer1(new_skin)
         return new_skin
     
-    def remove_layer(self,img, layer_index):
+    def remove_layer(self, img: Image.Image, layer_index: int) -> Image.Image:
         """Remove a layer from a 64x64 skin image"""
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
@@ -139,7 +141,7 @@ class MCSkinTools:
 
         return new_skin
     
-    def steve_to_alex(self, img ,index=2):
+    def steve_to_alex(self, img: Image.Image , index: int = 2) -> Image.Image:
         """Convert a steve skin image to alex skin type"""
         self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["steve", "regular", "alex", "slim"]:
@@ -149,7 +151,7 @@ class MCSkinTools:
 
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-        i = int(index)
+        i = index
 
         if i not in [0, 1, 2, 3]:
             raise ValueError(f"✗ Invalid delete index: {i}")
@@ -187,7 +189,7 @@ class MCSkinTools:
 
         return new_skin
     
-    def alex_to_steve(self, img, index=1):
+    def alex_to_steve(self, img: Image.Image, index: int = 1) -> Image.Image:
         """Convert a alex skin image to steve skin type"""
         self.skin_type = self.type_detector.auto_detect_skin_type(img)
         if self.skin_type not in ["alex", "slim", "steve", "regular"]:
@@ -197,7 +199,7 @@ class MCSkinTools:
         
         new_skin = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
 
-        i = int(index)
+        i = index
 
         if i not in [0, 1, 2]:
             raise ValueError(f"✗ Invalid append index: {i}")
@@ -241,7 +243,7 @@ class MCSkinTools:
 
         return new_skin
 
-    def convert_skin_type(self, img, target_type=None, mode=None):
+    def convert_skin_type(self, img: Image.Image, target_type: Optional[str] = None, mode: Optional[int] = None) -> Optional[Image.Image]:
         """Convert a skin image to the specified skin type"""
 
         if target_type is None:
@@ -275,7 +277,7 @@ class MCSkinTools:
         return new_skin
 
     @staticmethod
-    def load_skin_from_base64(base64_str):
+    def load_skin_from_base64(base64_str: str) -> Image.Image:
         """Load skin image from base64 string"""
         img = base64.b64decode(base64_str)
         new_skin = Image.open(BytesIO(img))

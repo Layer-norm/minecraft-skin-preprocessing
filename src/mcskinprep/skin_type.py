@@ -1,6 +1,9 @@
 import numpy as np
+from PIL import Image
 
 from .constants import DEFAULT_MC_SKIN_REGIONS
+
+from typing import Optional, Dict, List, Any
 
 class MCSkinType:
     """
@@ -8,15 +11,15 @@ class MCSkinType:
 
     """
     
-    def __init__(self, skin_type=None, regular_regions=DEFAULT_MC_SKIN_REGIONS):
+    def __init__(self, skin_type: Optional[str] = None, regular_regions: Optional[Dict[str, Dict[str, List[Dict[str, Any]]]]] = None) -> None:
         self._skin_type = skin_type
         
-        self.regular_regions = regular_regions
+        self.regular_regions = regular_regions if regular_regions is not None else DEFAULT_MC_SKIN_REGIONS
         self._slim_regions = {}
         self.adjust_regions = ['right_arm', 'left_arm']
 
     @property
-    def skin_type(self):
+    def skin_type(self) -> str:
         """
         Get skin type
 
@@ -28,7 +31,7 @@ class MCSkinType:
         return self._skin_type
     
     @skin_type.setter
-    def skin_type(self, value):
+    def skin_type(self, value: str) -> str:
         """
         Set skin type
         Args:
@@ -41,7 +44,7 @@ class MCSkinType:
 
 
     @property
-    def slim_regions(self):
+    def slim_regions(self) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
         """
         Get slim skin regions
 
@@ -68,7 +71,7 @@ class MCSkinType:
         return self._slim_regions
     
     @property
-    def skin_regions(self):
+    def skin_regions(self) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
         """
         Get skin regions based on skin type
 
@@ -83,7 +86,7 @@ class MCSkinType:
         else:
             raise ValueError("Invalid skin type. Must be 'regular', 'slim', 'steve', or 'alex'.")
 
-    def auto_detect_skin_type(self, skin_img):
+    def auto_detect_skin_type(self, skin_img: Image.Image) -> str:
         """
         Detect skin type (slim or regular) based on skin image
 
