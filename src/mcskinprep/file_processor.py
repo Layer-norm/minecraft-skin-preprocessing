@@ -14,7 +14,7 @@ class MCSkinFileProcessor:
     def __init__(self, skin_type: Optional[str] = None) -> None:
         self.skin_tools = MCSkinTools(skin_type)
 
-    def _load_skin(self, input_path: str):
+    def _load_skin(self, input_path: str) -> Optional[Image.Image]:
         """Load and verify Minecraft skin image"""
         try:
             img = Image.open(input_path)
