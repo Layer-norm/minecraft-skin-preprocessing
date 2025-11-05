@@ -16,13 +16,14 @@ A Minecraft skin preprocessing Python script.
 
 ## Update
 
+- 2025-11-4: refactor code.
 - 2025-11-1: Add support for skin convert between regular and slim (steve and alex).
 - 2025-10-30: Add function for skin type detection (steve or alex).
 - 2025-10-29: Initial release.
 
 ## Working in Progress
 
-- [ ] skin type detection in cli.
+- [x] skin type detection in cli.
 - [ ] two skins merge by layer.
 - [ ] Improve examples.
 
