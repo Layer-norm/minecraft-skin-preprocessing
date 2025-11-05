@@ -8,7 +8,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 
-from mcskinprep import MCSkinTools, MCSkinFileProcessor, MCSkinType
+from mcskinprep import MCSkinTools, MCSkinFileProcessor, MCSkinType, MCSkinRegionDetector
 
 
 class TestMCSkinTools(unittest.TestCase):
@@ -17,6 +17,7 @@ class TestMCSkinTools(unittest.TestCase):
         """Set up test fixtures before each test method."""
         self.skin_tools = MCSkinTools()
         self.skin_type_detector = MCSkinType()
+        self.region_detector = MCSkinRegionDetector()
         
         # 创建一个简单的64x32测试图像
         self.test_img_64x32 = Image.new('RGBA', (64, 32), (255, 0, 0, 255))  # 红色方块
