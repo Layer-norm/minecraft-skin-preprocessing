@@ -304,12 +304,14 @@ class MCSkinFileProcessor:
             with open(output_file, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(result, ensure_ascii=False) + '\n')
             
-            action = "pixel detection" if detection_method == "pixels" else "transparency detection"
+            action = "skin type detection" if detection_method == "skintype" else (
+                "pixel detection" if detection_method == "pixels" else "transparency detection")
             print(f"✓ {os.path.basename(input_file)}: Saved {action} results to {output_file}")
             return True
             
         except Exception as e:
-            action = "pixel detection" if detection_method == "pixels" else "transparency detection"
+            action = "skin type detection" if detection_method == "skintype" else (
+                "pixel detection" if detection_method == "pixels" else "transparency detection")
             print(f"Error {action} in {input_file}: {str(e)}")
             return False
 
@@ -432,8 +434,16 @@ class MCSkinFileProcessor:
             
             output_path = os.path.join(output_folder, output_filename)
 
-            # Check if output file already exists
-            if os.path.exists(output_path) and not overwrite:
+            # Handle overwrite logic for detection operations
+            if operation_action == "detect" and os.path.exists(output_path) and overwrite:
+                # If overwrite is True, remove the existing file to start fresh
+                try:
+                    os.remove(output_path)
+                except Exception as e:
+                    print(f"Warning: Could not remove existing file {output_path}: {str(e)}")
+
+            # Check if output file already exists (only for convert operations or when not overwriting)
+            if operation_action != "detect" and os.path.exists(output_path) and not overwrite:
                 print(f"⏭️ Skipped {filename} (output already exists)")
                 skipped_files += 1
                 continue
