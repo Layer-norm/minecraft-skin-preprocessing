@@ -3,6 +3,7 @@ Constants for the Minecraft skin preprocessing package.
 
 Contains:
 - DEFAULT_MC_SKIN_REGIONS: A dictionary containing the default skin regions for each layer.
+- DEFAULT_FILE_SUFFIXES: A dictionary containing the default file suffixes for each operation.
 
 """
 
@@ -59,4 +60,31 @@ DEFAULT_MC_SKIN_REGIONS = {
             {"name": "left_leg2_layer2", "coords": [0, 52, 16, 64]}
         ]
     }
+}
+
+DEFAULT_FILE_SUFFIXES = {
+    "convert":{
+        "convert_skin_64x32_to_64x64": "_64x64.png",
+        "swap_skin_layer2_to_layer1": "_swap.png",
+        "twice_swap_skin_layers": "_swap_swap.png",
+        "remove_layer": "_rm_layer{layer_index}.png",
+        "convert_skin_type": "_{target_type}.png",
+        "default": "_converted.png"
+    },
+    "detect":{
+        "detect_skin_type": "_skintype.jsonl",
+        "detect_region_pixels": "_{regions}_{layers}_has_pixels.jsonl",
+        "detect_region_transparency": "_{regions}_{layers}_has_transparency.jsonl",
+        "detect_region_all": "_{regions}_{layers}_properties.jsonl",
+        "default": "_detected.jsonl"
+    }
+}
+
+REGION_NAMES = {
+    "head": "h",
+    "body": "b",
+    "right_arm": "ra",
+    "left_arm": "la", 
+    "right_leg": "rl",
+    "left_leg": "ll"
 }

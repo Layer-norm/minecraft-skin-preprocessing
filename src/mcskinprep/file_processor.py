@@ -39,6 +39,65 @@ class MCSkinFileProcessor:
         if width != expected_size[0] or height != expected_size[1]:
             return False
         return True
+    
+    def _generate_output_filename(self, filename: str,
+                                  operation_action: str,
+                                  operation_func: Callable, **kwargs) -> str:
+        """Generate output filename with operation action"""
+        
+        from .constants import DEFAULT_FILE_SUFFIXES, REGION_NAMES
+
+        base_name = os.path.splitext(filename)[0]
+        func_name = operation_func.__name__
+
+        suffixes = DEFAULT_FILE_SUFFIXES.get(operation_action, {})
+        suffix_temp = suffixes.get(func_name, suffixes.get("default",""))
+        
+        if operation_action == "detect":
+            if not suffix_temp:
+                return f"{base_name}_output.jsonl"
+            
+            if func_name != "detect_skin_type":
+            
+                regions = kwargs.get("regions")
+                layers = kwargs.get("layers")
+
+                if layers is not None:
+                    if len(layers) == 1:
+                        layer_part = f"l{layers[0]}"
+                    else:
+                        layer_part = "all"
+                else:
+                    layer_part = "l1"
+
+                if regions is not None:
+                    region_names = [REGION_NAMES.get(r, r[:2]) for r in regions]
+                    region_part = ''.join(region_names) if region_names else "all"
+                else:
+                    region_part = "all"
+
+                suffix = suffix_temp.format(region=region_part, layer=layer_part)
+            else:
+                suffix = suffix_temp
+        
+        elif operation_action == "convert":
+            if not suffix_temp:
+                return f"{base_name}_output.png"
+            
+            if func_name == "convert_skin_type":
+                target_type = kwargs.get("target_type")
+                suffix = suffix_temp.format(target_type=target_type)
+            elif func_name == "remove_layer":
+                layer_index = kwargs.get("layer_index")
+                suffix = suffix_temp.format(layer_index=layer_index)
+            else:
+                suffix = suffix_temp
+        else:
+            suffix = "_output.txt"
+
+        return f"{base_name}{suffix}"
+
+
 
 
     def load_skin_from_base64(self, base64_string: str) -> Tuple[Optional[Image.Image], Optional[str]]:
@@ -425,41 +484,10 @@ class MCSkinFileProcessor:
             total_files += 1
 
             # Add suffix to filename
-            base_name = os.path.splitext(filename)[0]
-            if operation_action == "convert":
-                if operation_func is self.convert_skin_64x32_to_64x64:
-                    img_suffix = "_64x64.png"
-                elif operation_func is self.swap_skin_layer2_to_layer1:
-                    img_suffix = "_swap.png"
-                elif operation_func is self.twice_swap_skin_layers:
-                    img_suffix = "_swap_swap.png"
-                elif operation_func is self.remove_layer:
-                    img_suffix = f"_rm_layer{layer_index}.png"    
-                else:
-                    img_suffix = "_converted.png"
-                output_filename = f"{base_name}{img_suffix}"
-            elif operation_action == "detect":
-                if operation_func is self.detect_skin_type:
-                    jsonl_suffix = "_skintype.jsonl"
-                else:
-                    if regions is not None:
-                        region =''.join(str(x) for x in regions)
-                    else:
-                        region = 'all'
-                    if layers is not None:
-                        if len(layers) == 1:
-                            layer = f"layer{layers[0]}"
-                        else:
-                            layer = 'all'
-                    else:
-                        layer = 'layer1'
-                    if operation_func is self.detect_region_pixels:
-                        jsonl_suffix = f"{region}_{layer}_has_pixels.jsonl"
-                    elif operation_func is self.detect_region_transparency:
-                        jsonl_suffix = f"{region}_{layer}_has_transparency.jsonl"
-                    else:
-                        jsonl_suffix = f"{region}_{layer}_properties.jsonl"
-                output_filename = f"{base_name}{jsonl_suffix}"
+            output_filename = self._generate_output_filename(
+                filename, operation_action, operation_func,
+                regions=regions, layers=layers
+            )
 
             output_path = os.path.join(output_folder, output_filename)
 
