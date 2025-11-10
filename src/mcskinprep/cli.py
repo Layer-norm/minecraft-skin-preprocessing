@@ -103,11 +103,11 @@ Examples:
         if args.detect_properties == 'skintype':
             return processor.detect_skin_type(input_path, output_path)
         elif args.detect_properties == 'pixels':
-            return processor.detect_skin_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         elif args.detect_properties == 'transparency':
-            return processor.detect_skin_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         elif args.detect_properties == 'all':
-            return processor.detect_skin_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         else:
             return None
     

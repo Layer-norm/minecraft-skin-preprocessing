@@ -20,10 +20,13 @@ class MCSkinFileProcessor:
     def _load_skin(self, input_path: str) -> Optional[Image.Image]:
         """Load and verify Minecraft skin image"""
         try:
-            img = Image.open(input_path)
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-            return img
+            with Image.open(input_path) as img:
+                if img.mode != 'RGBA':
+                    img = img.convert('RGBA')
+                
+                # create a copy to ensure the file is closed
+                img_copy = img.copy()
+            return img_copy
         except Exception as e:
             print(f"✗ Error loading {os.path.basename(input_path)}: {str(e)}")
             return None
@@ -334,6 +337,13 @@ class MCSkinFileProcessor:
         Detect if specified regions have transparency (alpha == 0) in a skin image
         """
         return self._detect_skin(input_file, output_file, regions, layer, detection_method="transparency")
+    
+    def detect_region_all(self, input_file: str, output_file: Optional[str] = None,
+                           regions: Optional[list] = None, layer: Optional[int] = None) -> bool:
+        """
+        Detect if specified regions have pixels (alpha != 0) and transparency (alpha == 0) in a skin image
+        """
+        return self._detect_skin(input_file, output_file, regions, layer, detection_method="all")
 
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
                                  operation_func: Optional[Callable] = None, 
