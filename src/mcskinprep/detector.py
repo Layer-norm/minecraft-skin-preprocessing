@@ -31,7 +31,7 @@ class MCSkinRegionDetector:
         except (ValueError, AttributeError):
             self.skin_regions = DEFAULT_MC_SKIN_REGIONS
 
-    def _get_layers_to_check(self, layer: Optional[int]) -> List[str]:
+    def _get_layers_to_check(self, layer: Optional[List[int]]) -> List[str]:
         """
         Determine which layers to check based on input.
         
@@ -45,7 +45,7 @@ class MCSkinRegionDetector:
         if layer is None:
             return ['layer1', 'layer2']
         else:
-            return [f'layer{layer}']
+            return [f'layer{x}' for x in layer]
         
 
     def _get_regions_to_check(self, regions: Optional[List[str]]) -> List[str]:
@@ -66,7 +66,7 @@ class MCSkinRegionDetector:
     def _check_condition_in_regions(self, 
                                     condition_func: Callable[[np.ndarray], bool],
                                     regions: Optional[List[str]] = None, 
-                                    layer: Optional[int] = None,
+                                    layer: Optional[List[int]] = None,
                                     skin_img: Image.Image = None) -> bool:
         """
         Check if a condition is met in specified regions.

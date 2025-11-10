@@ -65,12 +65,15 @@ Examples:
     parser.add_argument('-to', '--target-type', choices=['steve', 'alex', 'regular', 'slim'], help='Target skin type (steve or alex)')
     parser.add_argument('-to_mode', choices=['0','1','2','3'], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
     parser.add_argument('-t', '--type', choices=['steve', 'alex', 'regular', 'slim'], help='Skin type (steve or alex)')
+    parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default='skintype', help='Detect properties (skintype, pixels, transparency, all)')
+    parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=1, help='Layer for detect properties (eg., 1, 2, 1 2)')
+    parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default='body', help='Regions for detect properties (e.g., head, body, right_arm)')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     
     args = parser.parse_args()
 
-    if not any([args.convert, args.swap_layer2_to_layer1, args.twice_swap_layer2_to_layer1, args.remove_layer, args.target_type]):
+    if not any([args.convert, args.swap_layer2_to_layer1, args.twice_swap_layer2_to_layer1, args.remove_layer, args.target_type, args.detect_properties]):
         if not args.version:
             parser.print_help()
             return
@@ -95,6 +98,19 @@ Examples:
             return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=mode)
         else:
             return None
+        
+    def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+        if args.detect_properties == 'skintype':
+            return processor.detect_skin_type(input_path, output_path)
+        elif args.detect_properties == 'pixels':
+            return processor.detect_skin_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+        elif args.detect_properties == 'transparency':
+            return processor.detect_skin_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+        elif args.detect_properties == 'all':
+            return processor.detect_skin_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+        else:
+            return None
+    
 
     # Determine input source
     if args.base64:
@@ -111,15 +127,26 @@ Examples:
         return
     
     # Check if input is file or folder
-    if os.path.isfile(input_path):
-        # Single file conversion
-        convert_func(input_path, args.output_folder)
-    elif os.path.isdir(input_path):
-        # Batch conversion
-        processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+    if args.detect_properties:
+        if os.path.isfile(input_path):
+            # Single file detection
+            detect_func(input_path, args.output_folder)
+        elif os.path.isdir(input_path):
+            # Batch detection
+            processor.batch_detect_folder(detect_func=detect_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+        else:
+            print(f"Error: '{input_path}' is not a valid file or directory")
+            sys.exit(1)
     else:
-        print(f"Error: '{input_path}' is not a valid file or directory")
-        sys.exit(1)
+        if os.path.isfile(input_path):
+            # Single file conversion
+            convert_func(input_path, args.output_folder)
+        elif os.path.isdir(input_path):
+            # Batch conversion
+            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+        else:
+            print(f"Error: '{input_path}' is not a valid file or directory")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
