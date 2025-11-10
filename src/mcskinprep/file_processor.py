@@ -16,6 +16,12 @@ class MCSkinFileProcessor:
     def __init__(self, skin_type: Optional[str] = None) -> None:
         self.skin_type = skin_type
         self.skin_tools = MCSkinTools(skin_type)
+        self._detection_method = "pixels"
+
+    @property
+    def detection_method(self) -> str:
+        """Get the current detection method"""
+        return self._detection_method
 
     def _load_skin(self, input_path: str) -> Optional[Image.Image]:
         """Load and verify Minecraft skin image"""
@@ -37,6 +43,7 @@ class MCSkinFileProcessor:
         if width != expected_size[0] or height != expected_size[1]:
             return False
         return True
+
 
     def load_skin_from_base64(self, base64_string: str) -> Tuple[Optional[Image.Image], Optional[str]]:
         """
@@ -328,28 +335,32 @@ class MCSkinFileProcessor:
         """
         Detect skin type (slim or regular) based on skin image
         """
-        return self._detect_skin(input_file, output_file, detection_method="skintype")
+        self._detection_method = "skintype"
+        return self._detect_skin(input_file, output_file, detection_method=self._detection_method)
 
     def detect_region_pixels(self, input_file: str, output_file: Optional[str] = None, 
                            regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have pixels (alpha != 0) in a skin image
         """
-        return self._detect_skin(input_file, output_file, regions, layers, detection_method="pixels")
+        self._detection_method = "pixels"
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method=self._detection_method)
 
     def detect_region_transparency(self, input_file: str, output_file: Optional[str] = None,
                                  regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have transparency (alpha == 0) in a skin image
-        """
-        return self._detect_skin(input_file, output_file, regions, layers, detection_method="transparency")
+        """        
+        self._detection_method = "transparency"
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method=self._detection_method)
     
     def detect_region_all(self, input_file: str, output_file: Optional[str] = None,
                            regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have pixels (alpha != 0) and transparency (alpha == 0) in a skin image
         """
-        return self._detect_skin(input_file, output_file, regions, layers, detection_method="all")
+        self._detection_method = "all"
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method=self._detection_method)
 
     def _jsonl_suffix(self, detection_method: str,
                       regions: Optional[List[str]] = None, 
@@ -385,8 +396,7 @@ class MCSkinFileProcessor:
                                  layer_index: Optional[int] = None,
                                  regions: Optional[List[str]] = None, 
                                  layers: Optional[List[int]] = None, 
-                                 overwrite: bool = False, 
-                                 detection_method: str = "pixels") -> None:
+                                 overwrite: bool = False) -> None:
         """
         Process all files in input folder using specified operation function
 
@@ -399,7 +409,6 @@ class MCSkinFileProcessor:
             regions (list): List of region names to check (optional)
             layers (list): List of layer indices to process (optional)
             overwrite (bool): Whether to overwrite existing files
-            detection_method (str): Type of detection ("pixels" or "transparency")
         """
         
         if not os.path.exists(input_folder):
@@ -457,7 +466,7 @@ class MCSkinFileProcessor:
                 else:
                     output_filename = f"{base_name}_converted.png"
             elif operation_action == "detect":
-                jsonl_suffix = self._jsonl_suffix(detection_method, regions, layers)
+                jsonl_suffix = self._jsonl_suffix(self._detection_method, regions, layers)
                 output_filename = f"{input_folder_name}_{jsonl_suffix}.jsonl"
             
             output_path = os.path.join(output_folder, output_filename)
@@ -487,7 +496,7 @@ class MCSkinFileProcessor:
         if operation_action == "convert":
             print("Conversion Summary:")
         else:
-            print(f"{detection_method.capitalize()} Detection Summary:")
+            print(f"{self._detection_method.capitalize()} Detection Summary:")
         print(f"Total files processed: {total_files}")
         print(f"Successfully processed: {processed_files}")
         print(f"Skipped: {skipped_files}")
@@ -516,7 +525,6 @@ class MCSkinFileProcessor:
                              output_folder: Optional[str] = None, 
                              regions: Optional[List[str]] = None,
                              layers: Optional[List[int]] = None, 
-                             detection_method: str = "pixels",
                              overwrite: bool = False) -> None:
         """
         Detect pixels or transparency in all skins in a folder with specified detect function
@@ -528,6 +536,5 @@ class MCSkinFileProcessor:
             operation_func=detect_func,
             regions=regions,
             layers=layers,
-            detection_method=detection_method,
             overwrite=overwrite
         )
