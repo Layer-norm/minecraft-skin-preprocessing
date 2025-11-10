@@ -63,7 +63,7 @@ DEFAULT_MC_SKIN_REGIONS = {
 }
 
 DEFAULT_FILE_SUFFIXES = {
-    "convert":{
+    "convert": {
         "convert_skin_64x32_to_64x64": "_64x64.png",
         "swap_skin_layer2_to_layer1": "_swap.png",
         "twice_swap_skin_layers": "_swap_swap.png",
@@ -71,11 +71,11 @@ DEFAULT_FILE_SUFFIXES = {
         "convert_skin_type": "_{target_type}.png",
         "default": "_converted.png"
     },
-    "detect":{
+    "detect": {
         "detect_skin_type": "_skintype.jsonl",
-        "detect_region_pixels": "_{regions}_{layers}_has_pixels.jsonl",
-        "detect_region_transparency": "_{regions}_{layers}_has_transparency.jsonl",
-        "detect_region_all": "_{regions}_{layers}_properties.jsonl",
+        "detect_region_pixels": "_{region}_{layer}_has_pixels.jsonl",
+        "detect_region_transparency": "_{region}_{layer}_has_transparency.jsonl",
+        "detect_region_all": "_{region}_{layer}_properties.jsonl",
         "default": "_detected.jsonl"
     }
 }

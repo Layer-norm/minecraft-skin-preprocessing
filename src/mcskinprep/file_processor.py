@@ -40,14 +40,13 @@ class MCSkinFileProcessor:
             return False
         return True
     
-    def _generate_output_filename(self, filename: str,
+    def _generate_output_filename(self, base_name: str,
                                   operation_action: str,
                                   operation_func: Callable, **kwargs) -> str:
         """Generate output filename with operation action"""
-        
+
         from .constants import DEFAULT_FILE_SUFFIXES, REGION_NAMES
 
-        base_name = os.path.splitext(filename)[0]
         func_name = operation_func.__name__
 
         suffixes = DEFAULT_FILE_SUFFIXES.get(operation_action, {})
@@ -483,11 +482,24 @@ class MCSkinFileProcessor:
             
             total_files += 1
 
+            if operation_action == "convert":
+                base_name = os.path.splitext(filename)[0]
+            else:
+                base_name = os.path.basename(os.path.normpath(input_folder))
+
             # Add suffix to filename
-            output_filename = self._generate_output_filename(
-                filename, operation_action, operation_func,
-                regions=regions, layers=layers
-            )
+            if operation_action == "convert":
+                output_filename = self._generate_output_filename(
+                    base_name, operation_action, operation_func,
+                    layer_index=layer_index, target_type=kwargs.get('target_type') if 'kwargs' in locals() else None
+                )
+            elif operation_action == "detect":
+                output_filename = self._generate_output_filename(
+                    base_name, operation_action, operation_func,
+                    regions=regions, layers=layers
+                )
+            else:
+                output_filename = f"{os.path.splitext(filename)[0]}_output.png"
 
             output_path = os.path.join(output_folder, output_filename)
 
