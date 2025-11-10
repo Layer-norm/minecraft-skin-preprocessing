@@ -360,49 +360,6 @@ class MCSkinFileProcessor:
         """
         self._detection_method = "all"
         return self._detect_skin(input_file, output_file, regions, layers, save_base64=save_base64, detection_method=self._detection_method)
-
-
-    def _img_suffix(self, convert_func: Optional[Callable] = None, layer_index: Optional[int] = None) -> str:
-        """
-        Get image suffix based on convert function
-        """
-        if convert_func is self.convert_skin_64x32_to_64x64:
-            return "_64x64.png"
-        elif convert_func is self.swap_skin_layer2_to_layer1:
-            return "_swap.png"
-        elif convert_func is self.twice_swap_skin_layers:
-            return "_swap_swap.png"
-        elif convert_func is self.remove_layer:
-            return f"_rm_layer{layer_index}.png"    
-        else:
-            return "_converted.png"
-    
-    def _jsonl_suffix(self, detection_func: Optional[Callable] = None,
-                      regions: Optional[List[str]] = None, 
-                      layers: Optional[List[int]] = None,) -> str:
-        """
-        Get JSONL suffix based on detection function
-        """
-        if detection_func is self.detect_skin_type:
-            return "_skintype.jsonl"
-        else:
-            if regions is not None:
-                region =''.join(str(x) for x in regions)
-            else:
-                region = 'all'
-            if layers is not None:
-                if len(layers) == 1:
-                    layer = f"layer{layers[0]}"
-                else:
-                    layer = 'all'
-            else:
-                layer = 'layer1'
-            if detection_func is self.detect_region_pixels:
-                return f"{region}_{layer}_has_pixels.jsonl"
-            elif detection_func is self.detect_region_transparency:
-                return f"{region}_{layer}_has_transparency.jsonl"
-            else:
-                return f"{region}_{layer}_properties.jsonl"
     
 
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
@@ -470,12 +427,40 @@ class MCSkinFileProcessor:
             # Add suffix to filename
             base_name = os.path.splitext(filename)[0]
             if operation_action == "convert":
-                img_suffix = self._img_suffix(operation_func, layer_index)
+                if operation_func is self.convert_skin_64x32_to_64x64:
+                    img_suffix = "_64x64.png"
+                elif operation_func is self.swap_skin_layer2_to_layer1:
+                    img_suffix = "_swap.png"
+                elif operation_func is self.twice_swap_skin_layers:
+                    img_suffix = "_swap_swap.png"
+                elif operation_func is self.remove_layer:
+                    img_suffix = f"_rm_layer{layer_index}.png"    
+                else:
+                    img_suffix = "_converted.png"
                 output_filename = f"{base_name}{img_suffix}"
             elif operation_action == "detect":
-                jsonl_suffix = self._jsonl_suffix(operation_func, regions, layers)
-                output_filename = f"{input_folder_name}_{jsonl_suffix}"
-            
+                if operation_func is self.detect_skin_type:
+                    jsonl_suffix = "_skintype.jsonl"
+                else:
+                    if regions is not None:
+                        region =''.join(str(x) for x in regions)
+                    else:
+                        region = 'all'
+                    if layers is not None:
+                        if len(layers) == 1:
+                            layer = f"layer{layers[0]}"
+                        else:
+                            layer = 'all'
+                    else:
+                        layer = 'layer1'
+                    if operation_func is self.detect_region_pixels:
+                        jsonl_suffix = f"{region}_{layer}_has_pixels.jsonl"
+                    elif operation_func is self.detect_region_transparency:
+                        jsonl_suffix = f"{region}_{layer}_has_transparency.jsonl"
+                    else:
+                        jsonl_suffix = f"{region}_{layer}_properties.jsonl"
+                output_filename = f"{base_name}{jsonl_suffix}"
+
             output_path = os.path.join(output_folder, output_filename)
 
             # Handle overwrite logic for detection operations
