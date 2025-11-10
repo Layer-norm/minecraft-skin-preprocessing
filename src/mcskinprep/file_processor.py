@@ -44,20 +44,18 @@ class MCSkinFileProcessor:
                                   operation_action: str,
                                   operation_func: Callable, **kwargs) -> str:
         """Generate output filename with operation action"""
-
         from .constants import DEFAULT_FILE_SUFFIXES, REGION_NAMES
 
         func_name = operation_func.__name__
 
         suffixes = DEFAULT_FILE_SUFFIXES.get(operation_action, {})
         suffix_temp = suffixes.get(func_name, suffixes.get("default",""))
-        
+
         if operation_action == "detect":
             if not suffix_temp:
                 return f"{base_name}_output.jsonl"
-            
+
             if func_name != "detect_skin_type":
-            
                 regions = kwargs.get("regions")
                 layers = kwargs.get("layers")
 
@@ -75,20 +73,29 @@ class MCSkinFileProcessor:
                 else:
                     region_part = "all"
 
-                suffix = suffix_temp.format(region=region_part, layer=layer_part)
+                try:
+                    suffix = suffix_temp.format(region=region_part, layer=layer_part)
+                except KeyError:
+                    suffix = "_detected.jsonl"
             else:
                 suffix = suffix_temp
-        
+
         elif operation_action == "convert":
             if not suffix_temp:
                 return f"{base_name}_output.png"
-            
+
             if func_name == "convert_skin_type":
-                target_type = kwargs.get("target_type")
-                suffix = suffix_temp.format(target_type=target_type)
+                target_type = kwargs.get("target_type", "converted")
+                try:
+                    suffix = suffix_temp.format(target_type=target_type)
+                except KeyError:
+                    suffix = f"_{target_type}.png"
             elif func_name == "remove_layer":
-                layer_index = kwargs.get("layer_index")
-                suffix = suffix_temp.format(layer_index=layer_index)
+                layer_index = kwargs.get("layer_index", 1)
+                try:
+                    suffix = suffix_temp.format(layer_index=layer_index)
+                except KeyError:
+                    suffix = f"_rm_layer{layer_index}.png"
             else:
                 suffix = suffix_temp
         else:
