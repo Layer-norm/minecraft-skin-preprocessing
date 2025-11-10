@@ -348,7 +348,7 @@ class TestMCSkinFileProcessor(unittest.TestCase):
             input_file=test_file,
             output_file=output_file,
             regions=['head', 'right_arm'],
-            layer=[1]
+            layers=[1]
         )
         
         # 验证结果
@@ -388,7 +388,7 @@ class TestMCSkinFileProcessor(unittest.TestCase):
             input_file=test_file,
             output_file=output_file,
             regions=['head'],
-            layer=[1]
+            layers=[1]
         )
         
         # 验证结果
