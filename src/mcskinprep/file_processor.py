@@ -474,7 +474,7 @@ class MCSkinFileProcessor:
         """
         Convert all skins in a folder with specified convert function
         """
-        self.process_files_in_folder(
+        self._batch_process_operation(
             input_folder=input_folder,
             output_folder=output_folder,
             operation_action="convert",
@@ -491,7 +491,7 @@ class MCSkinFileProcessor:
         """
         Detect pixels or transparency in all skins in a folder with specified detect function
         """
-        self.process_files_in_folder(
+        self._batch_process_operation(
             input_folder=input_folder,
             output_folder=output_folder,
             operation_action="detect",
