@@ -326,14 +326,14 @@ class MCSkinFileProcessor:
         """
         Detect if specified regions have pixels (alpha != 0) in a skin image
         """
-        return self._detect_region_property(input_file, output_file, regions, layer, detection_method="pixels")
+        return self._detect_skin(input_file, output_file, regions, layer, detection_method="pixels")
 
     def detect_region_transparency(self, input_file: str, output_file: Optional[str] = None,
                                  regions: Optional[list] = None, layer: Optional[int] = None) -> bool:
         """
         Detect if specified regions have transparency (alpha == 0) in a skin image
         """
-        return self._detect_region_property(input_file, output_file, regions, layer, detection_method="transparency")
+        return self._detect_skin(input_file, output_file, regions, layer, detection_method="transparency")
 
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
                                  operation_func: Optional[Callable] = None, 
