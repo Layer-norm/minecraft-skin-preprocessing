@@ -6,6 +6,7 @@ import tempfile
 import shutil
 from PIL import Image
 import base64
+import json
 from io import BytesIO
 
 from mcskinprep import MCSkinTools, MCSkinFileProcessor, MCSkinType, MCSkinRegionDetector
@@ -327,6 +328,144 @@ class TestMCSkinFileProcessor(unittest.TestCase):
             output_folder=self.output_dir,
             overwrite=True
         )
+    
+    def test_detect_region_pixels(self):
+        """Test region pixel detection functionality."""
+        # 创建一个测试图像，只在头部区域有像素
+        test_img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        # 在头部区域添加像素
+        for x in range(8, 24):
+            for y in range(0, 8):
+                test_img.putpixel((x, y), (255, 255, 255, 255))  # 白色不透明像素
+        
+        test_file = os.path.join(self.input_dir, "pixel_test_skin.png")
+        test_img.save(test_file)
+        
+        output_file = os.path.join(self.output_dir, "pixel_detection.jsonl")
+        
+        # 执行像素检测
+        success = self.processor.detect_region_pixels(
+            input_file=test_file,
+            output_file=output_file,
+            regions=['head', 'right_arm'],
+            layer=[1]
+        )
+        
+        # 验证结果
+        self.assertTrue(success)
+        self.assertTrue(os.path.exists(output_file))
+        
+        # 验证输出内容
+        with open(output_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            self.assertEqual(len(lines), 1)
+            
+            result = json.loads(lines[0])
+            self.assertEqual(result['filename'], 'pixel_test_skin.png')
+            self.assertIn('skin_type', result)
+            self.assertIn('has_pixels', result)
+            self.assertTrue(result['has_pixels'])  # 头部区域应该有像素
+
+    def test_detect_region_transparency(self):
+        """Test region transparency detection functionality."""
+        # 创建一个测试图像，只在头部区域有像素（部分透明）
+        test_img = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        # 在头部区域添加不透明和透明像素
+        for x in range(8, 24):
+            for y in range(0, 8):
+                if x < 16:  # 左半部分不透明
+                    test_img.putpixel((x, y), (255, 255, 255, 255))
+                else:  # 右半部分透明
+                    test_img.putpixel((x, y), (255, 255, 255, 0))
+        
+        test_file = os.path.join(self.input_dir, "transparency_test_skin.png")
+        test_img.save(test_file)
+        
+        output_file = os.path.join(self.output_dir, "transparency_detection.jsonl")
+        
+        # 执行透明度检测
+        success = self.processor.detect_region_transparency(
+            input_file=test_file,
+            output_file=output_file,
+            regions=['head'],
+            layer=[1]
+        )
+        
+        # 验证结果
+        self.assertTrue(success)
+        self.assertTrue(os.path.exists(output_file))
+        
+        # 验证输出内容
+        with open(output_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            self.assertEqual(len(lines), 1)
+            
+            result = json.loads(lines[0])
+            self.assertEqual(result['filename'], 'transparency_test_skin.png')
+            self.assertIn('skin_type', result)
+            self.assertIn('has_transparency', result)
+            self.assertTrue(result['has_transparency'])  # 头部区域应该有透明度
+
+    def test_batch_detect_region_pixels(self):
+        """Test batch pixel detection."""
+        # 创建额外的测试图像
+        test_img2 = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        for x in range(40, 56):
+            for y in range(20, 32):
+                test_img2.putpixel((x, y), (255, 0, 0, 255))  # 红色不透明像素
+        
+        test_file2 = os.path.join(self.input_dir, "pixel_test_skin2.png")
+        test_img2.save(test_file2)
+        
+        # 执行批量像素检测
+        self.processor.batch_detect_folder(
+            detect_func=self.processor.detect_region_pixels,
+            input_folder=self.input_dir,
+            output_folder=self.output_dir,
+            detection_method="pixels",
+            overwrite=True
+        )
+        
+        # 验证输出文件存在
+        output_files = [f for f in os.listdir(self.output_dir) if f.endswith('_has_pixels.jsonl')]
+        self.assertGreater(len(output_files), 0)
+        
+        # 验证其中一个输出文件的内容
+        output_file = os.path.join(self.output_dir, output_files[0])
+        with open(output_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            self.assertGreater(len(lines), 0)
+            
+            result = json.loads(lines[0])
+            self.assertIn('filename', result)
+            self.assertIn('skin_type', result)
+            self.assertIn('has_pixels', result)
+
+    def test_batch_detect_region_transparency(self):
+        """Test batch transparency detection."""
+        # 执行批量透明度检测
+        self.processor.batch_detect_folder(
+            detect_func=self.processor.detect_region_transparency,
+            input_folder=self.input_dir,
+            output_folder=self.output_dir,
+            detection_method="transparency",
+            overwrite=True
+        )
+        
+        # 验证输出文件存在
+        output_files = [f for f in os.listdir(self.output_dir) if f.endswith('_has_transparency.jsonl')]
+        self.assertGreater(len(output_files), 0)
+        
+        # 验证其中一个输出文件的内容
+        output_file = os.path.join(self.output_dir, output_files[0])
+        with open(output_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            self.assertGreater(len(lines), 0)
+            
+            result = json.loads(lines[0])
+            self.assertIn('filename', result)
+            self.assertIn('skin_type', result)
+            self.assertIn('has_transparency', result)
 
 
 if __name__ == '__main__':
