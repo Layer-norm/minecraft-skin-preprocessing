@@ -18,10 +18,6 @@ class MCSkinFileProcessor:
         self.skin_tools = MCSkinTools(skin_type)
         self._detection_method = "pixels"
 
-    @property
-    def detection_method(self) -> str:
-        """Get the current detection method"""
-        return self._detection_method
 
     def _load_skin(self, input_path: str) -> Optional[Image.Image]:
         """Load and verify Minecraft skin image"""
@@ -362,14 +358,30 @@ class MCSkinFileProcessor:
         self._detection_method = "all"
         return self._detect_skin(input_file, output_file, regions, layers, detection_method=self._detection_method)
 
-    def _jsonl_suffix(self, detection_method: str,
+
+    def _img_suffix(self, convert_func: Optional[Callable] = None, layer_index: Optional[int] = None) -> str:
+        """
+        Get image suffix based on convert function
+        """
+        if convert_func is self.convert_skin_64x32_to_64x64:
+            return "_64x64.png"
+        elif convert_func is self.swap_skin_layer2_to_layer1:
+            return "_swap.png"
+        elif convert_func is self.twice_swap_skin_layers:
+            return "_swap_swap.png"
+        elif convert_func is self.remove_layer:
+            return f"_rm_layer{layer_index}.png"    
+        else:
+            return "_converted.png"
+    
+    def _jsonl_suffix(self, detection_func: Optional[Callable] = None,
                       regions: Optional[List[str]] = None, 
                       layers: Optional[List[int]] = None,) -> str:
         """
-        Get JSONL suffix based on detection method
+        Get JSONL suffix based on detection function
         """
-        if detection_method == "skintype":
-            return "_skintype"
+        if detection_func is self.detect_skin_type:
+            return "_skintype.jsonl"
         else:
             if regions is not None:
                 region =''.join(str(x) for x in regions)
@@ -382,12 +394,12 @@ class MCSkinFileProcessor:
                     layer = 'all'
             else:
                 layer = 'layer1'
-            if detection_method == "pixels":
-                return f"{region}_{layer}_has_pixels"
-            elif detection_method == "transparency":
-                return f"{region}_{layer}_has_transparency"
+            if detection_func is self.detect_region_pixels:
+                return f"{region}_{layer}_has_pixels.jsonl"
+            elif detection_func is self.detect_region_transparency:
+                return f"{region}_{layer}_has_transparency.jsonl"
             else:
-                return f"{region}_{layer}_properties"
+                return f"{region}_{layer}_properties.jsonl"
     
 
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
@@ -455,19 +467,11 @@ class MCSkinFileProcessor:
             # Add suffix to filename
             base_name = os.path.splitext(filename)[0]
             if operation_action == "convert":
-                if operation_func is self.convert_skin_64x32_to_64x64:
-                    output_filename = f"{base_name}_64x64.png"
-                elif operation_func is self.swap_skin_layer2_to_layer1:
-                    output_filename = f"{base_name}_swap.png"
-                elif operation_func is self.twice_swap_skin_layers:
-                    output_filename = f"{base_name}_swap_swap.png"
-                elif operation_func is self.remove_layer:
-                    output_filename = f"{base_name}_rm_layer{layer_index}.png"    
-                else:
-                    output_filename = f"{base_name}_converted.png"
+                img_suffix = self._img_suffix(operation_func, layer_index)
+                output_filename = f"{base_name}{img_suffix}"
             elif operation_action == "detect":
-                jsonl_suffix = self._jsonl_suffix(self._detection_method, regions, layers)
-                output_filename = f"{input_folder_name}_{jsonl_suffix}.jsonl"
+                jsonl_suffix = self._jsonl_suffix(operation_func, regions, layers)
+                output_filename = f"{input_folder_name}_{jsonl_suffix}"
             
             output_path = os.path.join(output_folder, output_filename)
 
