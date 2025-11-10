@@ -237,7 +237,7 @@ class MCSkinFileProcessor:
 
     def _detect_skin(self, input_file: str, output_file: Optional[str] = None,
                                regions: Optional[List[str]] = None, 
-                               layer: Optional[List[int]] = None,
+                               layers: Optional[List[int]] = None,
                                save_base64: Optional[bool] = False,
                                detection_method: str = "skintype") -> bool:
         """
@@ -247,7 +247,7 @@ class MCSkinFileProcessor:
             input_file (str): Path to the input skin file
             output_file (str): Path to the output JSONL file
             regions (list): List of region names to check. If None, check all regions.
-            layer (int): Layer to check (1 for layer1, 2 for layer2). If None, check both layers.
+            layers (list): List of layer indices to check (1 for layer1, 2 for layer2, [1,2] for both). If None, check both layers.
             detection_method (str): Type of detection ("skintype" or "pixels" or "transparency" or "all")
             
         """
@@ -276,7 +276,7 @@ class MCSkinFileProcessor:
                 
                 # Get regions to check
                 regions_to_check = regions if regions is not None else list(detector.skin_regions['layer1'].keys())
-                layers_to_check = layer if layer is not None else [1, 2]
+                layers_to_check = layers if layers is not None else [1, 2]
 
                 # Perform detection and write results
                 if detection_method == "pixels":
@@ -325,25 +325,25 @@ class MCSkinFileProcessor:
         return self._detect_skin(input_file, output_file, detection_method="skintype")
 
     def detect_region_pixels(self, input_file: str, output_file: Optional[str] = None, 
-                           regions: Optional[list] = None, layer: Optional[int] = None) -> bool:
+                           regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have pixels (alpha != 0) in a skin image
         """
-        return self._detect_skin(input_file, output_file, regions, layer, detection_method="pixels")
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method="pixels")
 
     def detect_region_transparency(self, input_file: str, output_file: Optional[str] = None,
-                                 regions: Optional[list] = None, layer: Optional[int] = None) -> bool:
+                                 regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have transparency (alpha == 0) in a skin image
         """
-        return self._detect_skin(input_file, output_file, regions, layer, detection_method="transparency")
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method="transparency")
     
     def detect_region_all(self, input_file: str, output_file: Optional[str] = None,
-                           regions: Optional[list] = None, layer: Optional[int] = None) -> bool:
+                           regions: Optional[list] = None, layers: Optional[int] = None) -> bool:
         """
         Detect if specified regions have pixels (alpha != 0) and transparency (alpha == 0) in a skin image
         """
-        return self._detect_skin(input_file, output_file, regions, layer, detection_method="all")
+        return self._detect_skin(input_file, output_file, regions, layers, detection_method="all")
 
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
                                  operation_func: Optional[Callable] = None, 
