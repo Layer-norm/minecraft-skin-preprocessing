@@ -145,7 +145,7 @@ Examples:
             detect_func(input_path, args.output_folder)
         elif os.path.isdir(input_path):
             # Batch detection
-            processor.batch_detect_folder(detect_func=detect_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+            processor.batch_detect_folder(detect_func=detect_func, input_folder=input_path, output_folder=args.output_folder, regions=args.dp_region, layers=args.dp_layer, overwrite=args.overwrite)
         else:
             print(f"Error: '{input_path}' is not a valid file or directory")
             sys.exit(1)
@@ -155,7 +155,7 @@ Examples:
             convert_func(input_path, args.output_folder)
         elif os.path.isdir(input_path):
             # Batch conversion
-            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, regions=args.dp_region, layers=args.dp_layer, overwrite=args.overwrite)
+            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
         else:
             print(f"Error: '{input_path}' is not a valid file or directory")
             sys.exit(1)
