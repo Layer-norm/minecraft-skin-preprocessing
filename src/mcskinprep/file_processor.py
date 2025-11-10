@@ -281,11 +281,17 @@ class MCSkinFileProcessor:
                 # Perform detection and write results
                 if detection_method == "pixels":
                     result_value = detector.has_pixels(regions_to_check, layers_to_check, img)
+                    result["checked_layers"] = layers_to_check
+                    result["checked_regions"] = regions_to_check
                     result["has_pixels"] = result_value
                 elif detection_method == "transparency":
                     result_value = detector.has_transparency(regions_to_check, layers_to_check, img)
+                    result["checked_layers"] = layers_to_check
+                    result["checked_regions"] = regions_to_check
                     result["has_transparency"] = result_value
                 elif detection_method == "all":
+                    result["checked_layers"] = layers_to_check
+                    result["checked_regions"] = regions_to_check
                     result["has_pixels"] = detector.has_pixels(regions_to_check, layers_to_check, img)
                     result["has_transparency"] = detector.has_transparency(regions_to_check, layers_to_check, img) 
             

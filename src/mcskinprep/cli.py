@@ -51,6 +51,18 @@ Examples:
 
   # Convert skin from base64 string
   mcskinprep -c -b base64_skin_string
+
+  # Detect skin type
+  mcskinprep old_skin.png -dp skintype
+  
+  # Detect skin layer1 has non transparent pixels:
+  mcskinprep old_skin.png -dp pixels -dp_layer 1
+
+  # Detect skin layer1 has non transparent pixels in body region:
+  mcskinprep old_skin.png -dp pixels -dp_layer 1 -dp_region body
+
+  # Detect skin layer1 has transparency in body region:
+  mcskinprep old_skin.png -dp transparency -dp_layer 1 -dp_region body
         """
     )
     
@@ -66,8 +78,8 @@ Examples:
     parser.add_argument('-to_mode', choices=['0','1','2','3'], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
     parser.add_argument('-t', '--type', choices=['steve', 'alex', 'regular', 'slim'], help='Skin type (steve or alex)')
     parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default='skintype', help='Detect properties (skintype, pixels, transparency, all)')
-    parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=1, help='Layer for detect properties (eg., 1, 2, 1 2)')
-    parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default='body', help='Regions for detect properties (e.g., head, body, right_arm)')
+    parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=[1], help='Layer for detect properties (eg., 1, 2, 1 2) default is 1')
+    parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default=None, help='Regions for detect properties (e.g., head, body, right_arm), None for all regions')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     
