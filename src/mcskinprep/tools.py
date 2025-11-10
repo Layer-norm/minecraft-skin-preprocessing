@@ -283,3 +283,10 @@ class MCSkinTools:
         new_skin = Image.open(BytesIO(img))
         return new_skin
 
+    @staticmethod
+    def convert_skin_to_base64(img: Image.Image) -> str:
+        """Convert skin image to base64 string"""
+        img_bytes = BytesIO()
+        img.save(img_bytes, format="PNG")
+        base64_str = base64.b64encode(img_bytes.getvalue()).decode("utf-8")
+        return base64_str
