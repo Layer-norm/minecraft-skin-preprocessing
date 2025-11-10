@@ -351,11 +351,40 @@ class MCSkinFileProcessor:
         """
         return self._detect_skin(input_file, output_file, regions, layers, detection_method="all")
 
+    def _jsonl_suffix(self, detection_method: str,
+                      regions: Optional[List[str]] = None, 
+                      layers: Optional[List[int]] = None,) -> str:
+        """
+        Get JSONL suffix based on detection method
+        """
+        if detection_method == "skintype":
+            return "_skintype"
+        else:
+            if regions is not None:
+                region =''.join(str(x) for x in regions)
+            else:
+                region = 'all'
+            if layers is not None:
+                if len(layers) == 1:
+                    layer = f"layer{layers[0]}"
+                else:
+                    layer = 'all'
+            else:
+                layer = 'layer1'
+            if detection_method == "pixels":
+                return f"{region}_{layer}_has_pixels"
+            elif detection_method == "transparency":
+                return f"{region}_{layer}_has_transparency"
+            else:
+                return f"{region}_{layer}_properties"
+    
+
     def _batch_process_operation(self, input_folder: str, output_folder: Optional[str] = None,
                                  operation_func: Optional[Callable] = None, 
                                  operation_action: str = "convert",
-                                 regions: Optional[list] = None, 
                                  layer_index: Optional[int] = None,
+                                 regions: Optional[List[str]] = None, 
+                                 layers: Optional[List[int]] = None, 
                                  overwrite: bool = False, 
                                  detection_method: str = "pixels") -> None:
         """
@@ -366,8 +395,9 @@ class MCSkinFileProcessor:
             output_folder (str): Path to folder for output files (optional)
             operation_func (function): Function to apply to each file
             operation_action (str): Description of the operation (e.g., "convert", "detect")
-            regions (list): List of region names to check (optional)
             layer_index (int): Index of the layer to process (1 or 2) (optional)
+            regions (list): List of region names to check (optional)
+            layers (list): List of layer indices to process (optional)
             overwrite (bool): Whether to overwrite existing files
             detection_method (str): Type of detection ("pixels" or "transparency")
         """
@@ -395,6 +425,8 @@ class MCSkinFileProcessor:
         print(f"{operation_action.capitalize()} skins in: {input_folder}")
         print(f"Output folder: {output_folder}")
         print("-" * 50)
+
+        input_folder_name = os.path.basename(input_folder)
 
         # Process all image files in the folder
         for filename in os.listdir(input_folder):
@@ -425,28 +457,8 @@ class MCSkinFileProcessor:
                 else:
                     output_filename = f"{base_name}_converted.png"
             elif operation_action == "detect":
-                if detection_method == "pixels":
-                    if regions is not None:
-                        region =''.join(str(x) for x in regions)
-                    else:
-                        region = 'all'
-                    if layer_index is not None:
-                        layer = f"layer{layer_index}"
-                    else:
-                        layer = 'all'
-                    output_filename = f"{base_name}_{region}_{layer}_has_pixels.jsonl"
-                elif detection_method == "transparency":
-                    if regions is not None:
-                        region =''.join(str(x) for x in regions)
-                    else:
-                        region = 'all'
-                    if layer_index is not None:
-                        layer = f"layer{layer_index}"
-                    else:
-                        layer = 'all'
-                    output_filename = f"{base_name}_{region}_{layer}_has_transparency.jsonl"
-                elif operation_func is self.detect_skin_type:
-                    output_filename = f"{base_name}_skin_type.jsonl"
+                jsonl_suffix = self._jsonl_suffix(detection_method, regions, layers)
+                output_filename = f"{input_folder_name}_{jsonl_suffix}.jsonl"
             
             output_path = os.path.join(output_folder, output_filename)
 
@@ -502,6 +514,8 @@ class MCSkinFileProcessor:
     def batch_detect_folder(self, detect_func: Callable[[str, Optional[str], Optional[list], Optional[int]], bool], 
                              input_folder: str, 
                              output_folder: Optional[str] = None, 
+                             regions: Optional[List[str]] = None,
+                             layers: Optional[List[int]] = None, 
                              detection_method: str = "pixels",
                              overwrite: bool = False) -> None:
         """
@@ -512,6 +526,8 @@ class MCSkinFileProcessor:
             output_folder=output_folder,
             operation_action="detect",
             operation_func=detect_func,
+            regions=regions,
+            layers=layers,
             detection_method=detection_method,
             overwrite=overwrite
         )
