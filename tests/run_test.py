@@ -422,7 +422,6 @@ class TestMCSkinFileProcessor(unittest.TestCase):
             detect_func=self.processor.detect_region_pixels,
             input_folder=self.input_dir,
             output_folder=self.output_dir,
-            detection_method="pixels",
             overwrite=True
         )
         
@@ -448,7 +447,6 @@ class TestMCSkinFileProcessor(unittest.TestCase):
             detect_func=self.processor.detect_region_transparency,
             input_folder=self.input_dir,
             output_folder=self.output_dir,
-            detection_method="transparency",
             overwrite=True
         )
         
