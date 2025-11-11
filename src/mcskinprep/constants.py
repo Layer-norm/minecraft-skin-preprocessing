@@ -4,6 +4,7 @@ Constants for the Minecraft skin preprocessing package.
 Contains:
 - DEFAULT_MC_SKIN_REGIONS: A dictionary containing the default skin regions for each layer.
 - DEFAULT_FILE_SUFFIXES: A dictionary containing the default file suffixes for each operation.
+- REGION_NAMES: A dictionary containing the region names for each region to write suffix.
 
 """
 
