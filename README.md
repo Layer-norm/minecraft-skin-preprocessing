@@ -54,6 +54,7 @@ The package provides a command line interface for easy skin preprocessing.
 - `-dp, --detect-properties`: Detect properties (skintype, pixels, transparency) , all for detect all properties.
 - `-dp_layer, --detect-properties-layer`: Layer for detect properties (e.g., 1, 2, 1 2) default is 1.
 - `-dp_region, --detect-properties-region`: Regions for detect properties (e.g., head, body, right_arm), None for all regions.
+- `-dp_base64, --detect-properties-base64`: Save detect results in base64 format in jsonl file.
 - `--overwrite`: Overwrite existing files.
 - `-h, --help`: Show help message.
 - `-v, --version`: Show version information.
