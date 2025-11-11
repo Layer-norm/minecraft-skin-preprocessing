@@ -4,6 +4,8 @@ import sys
 import os
 
 from .file_processor import MCSkinFileProcessor
+from .decorators import OperationName
+
 
 import importlib.metadata
 
@@ -18,7 +20,7 @@ def main() -> None:
     """Main function with command line interface"""
     
     parser = argparse.ArgumentParser(
-        description="Convert Minecraft skins from 64x32 to 64x64 format",
+        description="Useful Minecraft skin preprocessing tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -51,6 +53,21 @@ Examples:
 
   # Convert skin from base64 string
   mcskinprep -c -b base64_skin_string
+
+  # Detect skin type
+  mcskinprep old_skin.png -dp skintype
+  
+  # Detect skin layer1 has non transparent pixels:
+  mcskinprep old_skin.png -dp pixels -dp_layer 1
+
+  # Detect skin layer1 has non transparent pixels in body region:
+  mcskinprep old_skin.png -dp pixels -dp_layer 1 -dp_region body
+
+  # Detect skin layer1 has transparency in body region:
+  mcskinprep old_skin.png -dp transparency -dp_layer 1 -dp_region body
+
+  # Detect skin layer1 has non transparent pixels in body region (image save in base64):
+  mcskinprep old_skin.png -dp pixels -dp_layer 1 -dp_region body -dp_base64
         """
     )
     
@@ -65,12 +82,16 @@ Examples:
     parser.add_argument('-to', '--target-type', choices=['steve', 'alex', 'regular', 'slim'], help='Target skin type (steve or alex)')
     parser.add_argument('-to_mode', choices=['0','1','2','3'], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
     parser.add_argument('-t', '--type', choices=['steve', 'alex', 'regular', 'slim'], help='Skin type (steve or alex)')
+    parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default=None, help='Detect properties (skintype, pixels, transparency), all for detect all properties')
+    parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=[1], help='Layer for detect properties (eg., 1, 2, 1 2) default is 1')
+    parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default=None, help='Regions for detect properties (e.g., head, body, right_arm), None for all regions')
+    parser.add_argument('-dp_base64', action='store_true', help='Save base64 string in output jsonl file')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     
     args = parser.parse_args()
 
-    if not any([args.convert, args.swap_layer2_to_layer1, args.twice_swap_layer2_to_layer1, args.remove_layer, args.target_type]):
+    if not any([args.convert, args.swap_layer2_to_layer1, args.twice_swap_layer2_to_layer1, args.remove_layer, args.target_type, args.detect_properties]):
         if not args.version:
             parser.print_help()
             return
@@ -80,21 +101,53 @@ Examples:
     else:
         processor = MCSkinFileProcessor()
     
+    
     # Determine function
-    def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
-        if args.convert:
+
+    if args.convert:
+        @OperationName("convert_skin_64x32_to_64x64")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.convert_skin_64x32_to_64x64(input_path, output_path)
-        elif args.swap_layer2_to_layer1:
+    elif args.swap_layer2_to_layer1:
+        @OperationName("swap_skin_layer2_to_layer1")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.swap_skin_layer2_to_layer1(input_path, output_path)
-        elif args.twice_swap_layer2_to_layer1:
+    elif args.twice_swap_layer2_to_layer1:
+        @OperationName("twice_swap_skin_layers")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.twice_swap_skin_layers(input_path, output_path)
-        elif args.remove_layer:
+    elif args.remove_layer:
+        @OperationName("remove_skin_layer")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
-        elif args.target_type:
+    elif args.target_type:
+        @OperationName("convert_skin_type")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             mode = int(args.to_mode) if args.to_mode is not None else None
             return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=mode)
-        else:
-            return None
+    else:
+        convert_func = None
+
+    
+    if args.detect_properties == 'skintype':
+        @OperationName("detect_skin_type")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+            return processor.detect_skin_type(input_path, output_path, save_base64=args.dp_base64)
+    elif args.detect_properties == 'pixels':
+        @OperationName("detect_region_pixels")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+            return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
+    elif args.detect_properties == 'transparency':
+        @OperationName("detect_region_transparency")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+            return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
+    elif args.detect_properties == 'all':
+        @OperationName("detect_region_all")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+            return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
+    else:
+        detect_func = None
+    
 
     # Determine input source
     if args.base64:
@@ -111,15 +164,28 @@ Examples:
         return
     
     # Check if input is file or folder
-    if os.path.isfile(input_path):
-        # Single file conversion
-        convert_func(input_path, args.output_folder)
-    elif os.path.isdir(input_path):
-        # Batch conversion
-        processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+    # detection
+    if args.detect_properties:
+        if os.path.isfile(input_path):
+            # Single file detection
+            detect_func(input_path, args.output_folder)
+        elif os.path.isdir(input_path):
+            # Batch detection
+            processor.batch_detect_folder(detect_func=detect_func, input_folder=input_path, output_folder=args.output_folder, regions=args.dp_region, layers=args.dp_layer, overwrite=args.overwrite)
+        else:
+            print(f"Error: '{input_path}' is not a valid file or directory")
+            sys.exit(1)
+    # conversion
     else:
-        print(f"Error: '{input_path}' is not a valid file or directory")
-        sys.exit(1)
+        if os.path.isfile(input_path):
+            # Single file conversion
+            convert_func(input_path, args.output_folder)
+        elif os.path.isdir(input_path):
+            # Batch conversion
+            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, layer_index=args.remove_layer, overwrite=args.overwrite)
+        else:
+            print(f"Error: '{input_path}' is not a valid file or directory")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
