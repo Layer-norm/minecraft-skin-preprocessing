@@ -13,20 +13,18 @@ A Minecraft skin preprocessing Python script.
 - Batch processing of skins in folders.
 - Customizable output folder for converted skins.
 - Option to overwrite existing files.
-
+- Skin type detection (regular or slim).
+- Pixels and transparency detection in specific regions.
+---
 ## Update
 
+- 2025-11-11: Add pixel and transparency detection in specific regions.
 - 2025-11-4: refactor code.
 - 2025-11-1: Add support for skin convert between regular and slim (steve and alex).
 - 2025-10-30: Add function for skin type detection (steve or alex).
 - 2025-10-29: Initial release.
 
-## Working in Progress
-
-- [x] skin type detection in cli.
-- [ ] two skins merge by layer.
-- [ ] Improve examples.
-
+---
 ## Installation
 
 Install the package using pip:
@@ -34,7 +32,7 @@ Install the package using pip:
 ```bash
 pip install mcskinprep
 ```
-
+---
 ## Usage
 
 ### Command Line Interface
@@ -46,18 +44,45 @@ The package provides a command line interface for easy skin preprocessing.
 - `input`: Input file or folder path (optional).
 - `-c, --convert`: Convert 64x32 skins to 64x64 format.
 - `-i, --input-folder`: Specify the input folder containing skins.
-- `-o, --output-folder`: Specify the output folder for converted skins.
+- `-o, --output-folder`: Specify the output folder for processed skins or output jsonl.
 - `-t, --type`: Specify the source skin type (steve or alex) for conversion.
 - `-s, --swap-layer2-to-layer1`: Swap layer2 to layer1 for skins.
-- `-ss`: Swap layer2 and layer1 twice to remove invalid areas.
+- `-ss, --twice-swap-layer2-to-layer1`: Swap layer2 and layer1 twice to remove invalid areas.
 - `-rm, --remove-layer`: Remove specified layer (1 or 2) for skins.
 - `-to, --target-type`: Convert skin between regular (steve) and slim (alex) types.
 - `-b, --base64`: Process Base64-encoded skin images.
+- `-dp, --detect-properties`: Detect properties (skintype, pixels, transparency) , all for detect all properties.
+- `-dp_layer, --detect-properties-layer`: Layer for detect properties (e.g., 1, 2, 1 2) default is 1.
+- `-dp_region, --detect-properties-region`: Regions for detect properties (e.g., head, body, right_arm), None for all regions.
 - `--overwrite`: Overwrite existing files.
 - `-h, --help`: Show help message.
 - `-v, --version`: Show version information.
 
 #### Examples
+---
+##### New examples
+Detect skin type (regular or slim):
+```bash
+mcskinprep old_skin.png -dp skintype
+```
+
+Detect skin layer pixels in layer 1(save in jsonl):
+```bash
+mcskinprep old_skin.png -dp pixels
+```
+
+Detect skin specific region pixels in layer 1 (save in jsonl):
+
+```bash
+mcskinprep old_skin.png -dp pixels -dp_region head  -dp_layer 1
+```
+
+Detect skin layer transparency(save in jsonl):
+```bash
+mcskinprep old_skin.png -dp transparency -dp_region head  -dp_layer 1
+```
+---
+
 Convert format of a single skin (64x32 to 64x64)
 ```bash
 mcskinprep -c old_skin.png
@@ -109,6 +134,7 @@ mcskinprep -c -b base64_skin_string
 The package also provides a Python API for programmatic skin preprocessing.
 
 #### Examples
+
 usage of core tools
 ```python
 from mcskinprep import MCSkinTools, MCSkinType
@@ -169,6 +195,16 @@ processor.batch_convert_folder(
     input_folder="input_skins/",
     output_folder="output_skins/",
     overwrite=False
+)
+
+# Detect wheather head region in layer 1 has transparent pixels in a folder
+batch_detect_folder(
+     detect_func=processor.detect_region_transparency, 
+     input_folder="input_skins/",
+     output_folder="output_skins/",
+     regions=["head"],
+     layers=[1], 
+     overwrite=False
 )
 ```
 

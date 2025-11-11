@@ -20,7 +20,7 @@ def main() -> None:
     """Main function with command line interface"""
     
     parser = argparse.ArgumentParser(
-        description="Convert Minecraft skins from 64x32 to 64x64 format",
+        description="Useful Minecraft skin preprocessing tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -79,7 +79,7 @@ Examples:
     parser.add_argument('-to', '--target-type', choices=['steve', 'alex', 'regular', 'slim'], help='Target skin type (steve or alex)')
     parser.add_argument('-to_mode', choices=['0','1','2','3'], help='Mode for skin type convert, steve_to_alex have mode [0,1,2,3], default is 2, alex_to_steve have mode [0,1,2], default is 1')
     parser.add_argument('-t', '--type', choices=['steve', 'alex', 'regular', 'slim'], help='Skin type (steve or alex)')
-    parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default=None, help='Detect properties (skintype, pixels, transparency, all)')
+    parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default=None, help='Detect properties (skintype, pixels, transparency), all for detect all properties')
     parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=[1], help='Layer for detect properties (eg., 1, 2, 1 2) default is 1')
     parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default=None, help='Regions for detect properties (e.g., head, body, right_arm), None for all regions')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
