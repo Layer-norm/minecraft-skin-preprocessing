@@ -97,43 +97,52 @@ Examples:
     else:
         processor = MCSkinFileProcessor()
     
+    
     # Determine function
 
-    def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
-        if args.convert:
-            convert_func.operation_name = "convert_skin_64x32_to_64x64"
+    if args.convert:
+        @OperationName("convert_skin_64x32_to_64x64")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.convert_skin_64x32_to_64x64(input_path, output_path)
-        elif args.swap_layer2_to_layer1:
-            convert_func.operation_name = "swap_skin_layer2_to_layer1"
+    elif args.swap_layer2_to_layer1:
+        @OperationName("swap_skin_layer2_to_layer1")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.swap_skin_layer2_to_layer1(input_path, output_path)
-        elif args.twice_swap_layer2_to_layer1:
-            convert_func.operation_name = "twice_swap_skin_layers"
+    elif args.twice_swap_layer2_to_layer1:
+        @OperationName("twice_swap_skin_layers")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.twice_swap_skin_layers(input_path, output_path)
-        elif args.remove_layer:
-            convert_func.operation_name = "remove_skin_layer"
+    elif args.remove_layer:
+        @OperationName("remove_skin_layer")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
-        elif args.target_type:
-            convert_func.operation_name = "convert_skin_type"
+    elif args.target_type:
+        @OperationName("convert_skin_type")
+        def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
             mode = int(args.to_mode) if args.to_mode is not None else None
             return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=mode)
-        else:
-            return None
+    else:
+        convert_func = None
+
     
-    def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
-        if args.detect_properties == 'skintype':
-            detect_func.operation_name = "detect_skin_type"
+    if args.detect_properties == 'skintype':
+        @OperationName("detect_skin_type")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.detect_skin_type(input_path, output_path)
-        elif args.detect_properties == 'pixels':
-            detect_func.operation_name = "detect_region_pixels"
+    elif args.detect_properties == 'pixels':
+        @OperationName("detect_region_pixels")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
-        elif args.detect_properties == 'transparency':
-            detect_func.operation_name = "detect_region_transparency"
+    elif args.detect_properties == 'transparency':
+        @OperationName("detect_region_transparency")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
-        elif args.detect_properties == 'all':
-            detect_func.operation_name = "detect_region_all"
+    elif args.detect_properties == 'all':
+        @OperationName("detect_region_all")
+        def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
             return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
-        else:
-            return None
+    else:
+        detect_func = None
     
 
     # Determine input source
