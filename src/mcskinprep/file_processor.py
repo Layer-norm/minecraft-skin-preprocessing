@@ -5,6 +5,7 @@ from PIL import Image
 
 from .tools import MCSkinTools
 from .detector import MCSkinRegionDetector
+from .decorators import OperationName
 
 from typing import Optional, Tuple, Callable, List
 
@@ -40,13 +41,15 @@ class MCSkinFileProcessor:
             return False
         return True
     
+
     def _generate_output_filename(self, base_name: str,
                                   operation_action: str,
                                   operation_func: Callable, **kwargs) -> str:
         """Generate output filename with operation action"""
         from .constants import DEFAULT_FILE_SUFFIXES, REGION_NAMES
 
-        func_name = operation_func.__name__
+        func_name = OperationName.get_operation_name(operation_func)
+
 
         suffixes = DEFAULT_FILE_SUFFIXES.get(operation_action, {})
         suffix_temp = suffixes.get(func_name, suffixes.get("default",""))
@@ -104,8 +107,6 @@ class MCSkinFileProcessor:
         return f"{base_name}{suffix}"
 
 
-
-
     def load_skin_from_base64(self, base64_string: str) -> Tuple[Optional[Image.Image], Optional[str]]:
         """
         Load skin from base64 encoded string
@@ -125,6 +126,7 @@ class MCSkinFileProcessor:
             print(f"✗ Error loading skin from base64: {str(e)}")
             return None, None
 
+    @OperationName("convert_skin_64x32_to_64x64")
     def convert_skin_64x32_to_64x64(self, input_path: str, output_path: Optional[str] = None) -> bool:
         """
         Convert a 64x32 Minecraft skin to 64x64 format
@@ -175,6 +177,7 @@ class MCSkinFileProcessor:
             print(f"✗ Error processing {os.path.basename(input_path)}: {str(e)}")
             return False
 
+    @OperationName("swap_skin_layer2_to_layer1")
     def swap_skin_layer2_to_layer1(self,input_file: str, output_file: Optional[str] = None) -> bool:
         """
         swap layer2 to layer1 in a 64x64 skin image
@@ -207,6 +210,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
+    @OperationName("twice_swap_skin_layers")
     def twice_swap_skin_layers(self, input_file: str, output_file: Optional[str] = None) -> bool:
         """
         Swap layer2 and layer1 twice (to remove invalid areas) in a 64x64 skin image
@@ -238,6 +242,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
+    @OperationName("remove_skin_layer")
     def remove_layer(self, input_file: str, output_file: Optional[str] = None, layer_index: Optional[int] = None) -> bool:
         """
         Remove a layer from a 64x64 skin image
@@ -274,6 +279,7 @@ class MCSkinFileProcessor:
             print(f"Error converting {input_file}: {str(e)}")
             return False
 
+    @OperationName("convert_skin_type")
     def convert_skin_type(self, input_file: str, output_file: Optional[str] = None, target_type: Optional[str] = None, mode: Optional[int] = None) -> bool:
         """
         Convert a skin image to specified type
@@ -392,6 +398,7 @@ class MCSkinFileProcessor:
             print(f"Error {action} in {input_file}: {str(e)}")
             return False
 
+    @OperationName("detect_skin_type")
     def detect_skin_type(self, input_file: str, output_file: Optional[str] = None, save_base64: bool = False) -> bool:
         """
         Detect skin type (slim or regular) based on skin image
@@ -399,6 +406,7 @@ class MCSkinFileProcessor:
         self._detection_method = "skintype"
         return self._detect_skin(input_file, output_file, save_base64=save_base64, detection_method=self._detection_method)
 
+    @OperationName("detect_region_pixels")
     def detect_region_pixels(self, input_file: str, output_file: Optional[str] = None, 
                             regions: Optional[list] = None, layers: Optional[int] = None,
                             save_base64: bool = False) -> bool:
@@ -408,6 +416,7 @@ class MCSkinFileProcessor:
         self._detection_method = "pixels"
         return self._detect_skin(input_file, output_file, regions, layers, save_base64=save_base64, detection_method=self._detection_method)
 
+    @OperationName("detect_region_transparency")
     def detect_region_transparency(self, input_file: str, output_file: Optional[str] = None,
                                  regions: Optional[list] = None, layers: Optional[int] = None,
                                  save_base64: bool = False) -> bool:
@@ -416,7 +425,8 @@ class MCSkinFileProcessor:
         """        
         self._detection_method = "transparency"
         return self._detect_skin(input_file, output_file, regions, layers, save_base64=save_base64, detection_method=self._detection_method)
-    
+
+    @OperationName("detect_region_all")
     def detect_region_all(self, input_file: str, output_file: Optional[str] = None,
                            regions: Optional[list] = None, layers: Optional[int] = None,
                            save_base64: bool = False) -> bool:
@@ -431,6 +441,7 @@ class MCSkinFileProcessor:
                                  operation_func: Optional[Callable] = None, 
                                  operation_action: str = "convert",
                                  layer_index: Optional[int] = None,
+                                 target_type: Optional[str] = None,
                                  regions: Optional[List[str]] = None, 
                                  layers: Optional[List[int]] = None, 
                                  overwrite: bool = False) -> None:
@@ -472,7 +483,25 @@ class MCSkinFileProcessor:
         print(f"Output folder: {output_folder}")
         print("-" * 50)
 
-        input_folder_name = os.path.basename(input_folder)
+
+        # add suffix to output filename(detection)
+        if operation_action == "detect":
+            # Generate the output filename for detection operations
+            # base name is input folder name
+            base_name = os.path.basename(input_folder)
+            output_filename = self._generate_output_filename(
+                base_name, operation_action, operation_func,
+                regions=regions, layers=layers
+            )
+            output_path = os.path.join(output_folder, output_filename)
+            
+            # Handle overwrite logic for detection operations - only once at the beginning
+            if overwrite and os.path.exists(output_path):
+                try:
+                    os.remove(output_path)
+                except Exception as e:
+                    print(f"Warning: Could not remove existing file {output_path}: {str(e)}")
+
 
         # Process all image files in the folder
         for filename in os.listdir(input_folder):
@@ -489,34 +518,15 @@ class MCSkinFileProcessor:
             
             total_files += 1
 
+            # Add suffix to output filename(convert)
             if operation_action == "convert":
                 base_name = os.path.splitext(filename)[0]
-            else:
-                base_name = os.path.basename(os.path.normpath(input_folder))
-
-            # Add suffix to filename
-            if operation_action == "convert":
                 output_filename = self._generate_output_filename(
                     base_name, operation_action, operation_func,
-                    layer_index=layer_index, target_type=kwargs.get('target_type') if 'kwargs' in locals() else None
+                    layer_index=layer_index, target_type=target_type
                 )
-            elif operation_action == "detect":
-                output_filename = self._generate_output_filename(
-                    base_name, operation_action, operation_func,
-                    regions=regions, layers=layers
-                )
-            else:
-                output_filename = f"{os.path.splitext(filename)[0]}_output.png"
 
             output_path = os.path.join(output_folder, output_filename)
-
-            # Handle overwrite logic for detection operations
-            if operation_action == "detect" and os.path.exists(output_path) and overwrite:
-                # If overwrite is True, remove the existing file to start fresh
-                try:
-                    os.remove(output_path)
-                except Exception as e:
-                    print(f"Warning: Could not remove existing file {output_path}: {str(e)}")
 
             # Check if output file already exists (only for convert operations or when not overwriting)
             if operation_action != "detect" and os.path.exists(output_path) and not overwrite:
@@ -540,7 +550,6 @@ class MCSkinFileProcessor:
         print(f"Successfully processed: {processed_files}")
         print(f"Skipped: {skipped_files}")
         print(f"Errors: {error_files}")
-
 
     def batch_convert_folder(self, convert_func: Callable[[str, Optional[str], Optional[str], Optional[int]], bool], 
                              input_folder: str, 

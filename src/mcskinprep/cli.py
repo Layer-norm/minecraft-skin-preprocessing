@@ -4,6 +4,8 @@ import sys
 import os
 
 from .file_processor import MCSkinFileProcessor
+from .decorators import OperationName
+
 
 import importlib.metadata
 
@@ -97,29 +99,49 @@ Examples:
     
     # Determine function
     def convert_func(input_path: str, output_path: Optional[str] = None) -> bool:
+        cfunc = None
         if args.convert:
-            return processor.convert_skin_64x32_to_64x64(input_path, output_path)
+            cfunc = processor.convert_skin_64x32_to_64x64
+            convert_func.operation_name = OperationName.get_operation_name(cfunc)
+            return cfunc(input_path, output_path)
         elif args.swap_layer2_to_layer1:
-            return processor.swap_skin_layer2_to_layer1(input_path, output_path)
+            cfunc = processor.swap_skin_layer2_to_layer1
+            convert_func.operation_name = OperationName.get_operation_name(cfunc)
+            return cfunc(input_path, output_path)
         elif args.twice_swap_layer2_to_layer1:
-            return processor.twice_swap_skin_layers(input_path, output_path)
+            cfunc = processor.twice_swap_skin_layers
+            convert_func.operation_name = OperationName.get_operation_name(cfunc)
+            return cfunc(input_path, output_path)
         elif args.remove_layer:
-            return processor.remove_layer(input_path, output_path, layer_index=args.remove_layer)
+            cfunc = processor.remove_layer
+            convert_func.operation_name = OperationName.get_operation_name(cfunc)
+            return cfunc(input_path, output_path, layer_index=args.remove_layer)
         elif args.target_type:
             mode = int(args.to_mode) if args.to_mode is not None else None
-            return processor.convert_skin_type(input_path, output_path, target_type=args.target_type, mode=mode)
+            cfunc = processor.convert_skin_type
+            convert_func.operation_name = OperationName.get_operation_name(cfunc)
+            return cfunc(input_path, output_path, target_type=args.target_type, mode=mode)
         else:
             return None
         
     def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
+        dfuc = None
         if args.detect_properties == 'skintype':
-            return processor.detect_skin_type(input_path, output_path)
+            dfuc = processor.detect_skin_type
+            detect_func.operation_name = OperationName.get_operation_name(dfuc)
+            return dfuc(input_path, output_path)
         elif args.detect_properties == 'pixels':
-            return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            dfuc = processor.detect_region_pixels
+            detect_func.operation_name = OperationName.get_operation_name(dfuc)
+            return dfuc(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         elif args.detect_properties == 'transparency':
-            return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            dfuc = processor.detect_region_transparency
+            detect_func.operation_name = OperationName.get_operation_name(dfuc)
+            return dfuc(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         elif args.detect_properties == 'all':
-            return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            dfuc = processor.detect_region_all
+            detect_func.operation_name = OperationName.get_operation_name(dfuc)
+            return dfuc(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
         else:
             return None
     
@@ -139,6 +161,7 @@ Examples:
         return
     
     # Check if input is file or folder
+    # detection
     if args.detect_properties:
         if os.path.isfile(input_path):
             # Single file detection
@@ -149,6 +172,7 @@ Examples:
         else:
             print(f"Error: '{input_path}' is not a valid file or directory")
             sys.exit(1)
+    # conversion
     else:
         if os.path.isfile(input_path):
             # Single file conversion
