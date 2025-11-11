@@ -65,6 +65,9 @@ Examples:
 
   # Detect skin layer1 has transparency in body region:
   mcskinprep old_skin.png -dp transparency -dp_layer 1 -dp_region body
+
+  # Detect skin layer1 has non transparent pixels in body region (image save in base64):
+  mcskinprep old_skin.png -dp pixels -dp_layer 1 -dp_region body -dp_base64
         """
     )
     
@@ -82,6 +85,7 @@ Examples:
     parser.add_argument('-dp', '--detect-properties', choices=['skintype','pixels','transparency','all'], default=None, help='Detect properties (skintype, pixels, transparency), all for detect all properties')
     parser.add_argument('-dp_layer', nargs='+', type=int, choices=[1, 2], default=[1], help='Layer for detect properties (eg., 1, 2, 1 2) default is 1')
     parser.add_argument('-dp_region', nargs='+', choices=['head', 'body', 'right_arm', 'left_arm', 'right_leg', 'left_leg'], default=None, help='Regions for detect properties (e.g., head, body, right_arm), None for all regions')
+    parser.add_argument('-dp_base64', action='store_true', help='Save base64 string in output jsonl file')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files')
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     
@@ -128,19 +132,19 @@ Examples:
     if args.detect_properties == 'skintype':
         @OperationName("detect_skin_type")
         def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
-            return processor.detect_skin_type(input_path, output_path)
+            return processor.detect_skin_type(input_path, output_path, save_base64=args.dp_base64)
     elif args.detect_properties == 'pixels':
         @OperationName("detect_region_pixels")
         def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
-            return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_pixels(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
     elif args.detect_properties == 'transparency':
         @OperationName("detect_region_transparency")
         def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
-            return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_transparency(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
     elif args.detect_properties == 'all':
         @OperationName("detect_region_all")
         def detect_func(input_path: str, output_path: Optional[str] = None) -> bool:
-            return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region)
+            return processor.detect_region_all(input_path, output_path, layers=args.dp_layer, regions=args.dp_region, save_base64=args.dp_base64)
     else:
         detect_func = None
     
@@ -178,7 +182,7 @@ Examples:
             convert_func(input_path, args.output_folder)
         elif os.path.isdir(input_path):
             # Batch conversion
-            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, overwrite=args.overwrite)
+            processor.batch_convert_folder(convert_func=convert_func, input_folder=input_path, output_folder=args.output_folder, layer_index=args.remove_layer, overwrite=args.overwrite)
         else:
             print(f"Error: '{input_path}' is not a valid file or directory")
             sys.exit(1)
