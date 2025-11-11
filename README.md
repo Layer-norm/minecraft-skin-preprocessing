@@ -66,20 +66,20 @@ Detect skin type (regular or slim):
 mcskinprep old_skin.png -dp skintype
 ```
 
-Detect skin layer pixels in layer 1(save in jsonl):
+Detect skin layer pixels in layer 1(result save in xx_all_l1_has_pixels.jsonl):
 ```bash
 mcskinprep old_skin.png -dp pixels
 ```
 
-Detect skin specific region pixels in layer 1 (save in jsonl):
+Detect skin specific region pixels in layer 1 (save in xx_h_l1_has_pixels.jsonl):
 
 ```bash
 mcskinprep old_skin.png -dp pixels -dp_region head  -dp_layer 1
 ```
 
-Detect skin layer transparency(save in jsonl):
+Detect skin layer transparency(save in xx_hra_l1_has_transparency.jsonl):
 ```bash
-mcskinprep old_skin.png -dp transparency -dp_region head  -dp_layer 1
+mcskinprep old_skin.png -dp transparency -dp_region head right_arm -dp_layer 1
 ```
 ---
 
