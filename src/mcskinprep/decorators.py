@@ -1,4 +1,6 @@
-
+"""
+Decorators for Minecraft File Preprocessing
+"""
 
 from functools import wraps
 

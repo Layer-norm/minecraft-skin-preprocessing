@@ -1,3 +1,9 @@
+"""
+FileProcessors
+
+This module contains classes for processing files including inputs and outputs.
+"""
+
 
 import os
 import json

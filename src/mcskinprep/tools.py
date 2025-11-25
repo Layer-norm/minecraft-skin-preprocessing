@@ -1,14 +1,7 @@
 """
-Minecraft Skin Preprocessing Tool
+Minecraft Skin Preprocessing Core Tools
 
-Author: Faxuan Cai
-
-License: MIT License
-
-Description:
-Converts legacy 64x32 skins to modern 64x64 format
-Swap layer2 and layer1
-Remove specific layer
+This module provides functionality for preprocessing Minecraft skins.
 """
 
 import numpy as np

@@ -1,3 +1,9 @@
+"""
+Minecraft Skin Type (Steve and Alex)
+
+Module for Minecraft skin type detection and handling
+
+"""
 import numpy as np
 from PIL import Image
 
